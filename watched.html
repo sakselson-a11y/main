@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>What I have watched 2026</title>
+  <title>Film och -serielista</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -38,16 +38,39 @@
       cursor: pointer;
     }
 
-    .card img {
+    .poster-wrap {
+      position: relative;
       width: 100%;
       border-radius: 8px;
+      overflow: hidden;
       aspect-ratio: 2/3;
-      object-fit: cover;
       background: #222;
+    }
+
+    .poster-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
       display: block;
       transition: transform .25s, opacity .25s;
     }
-    .card:hover img { transform: scale(1.04); opacity: .85; }
+    .card:hover .poster-wrap img { transform: scale(1.04); opacity: .85; }
+
+    .ribbon {
+      position: absolute;
+      top: 10px;
+      left: 0;
+      padding: 4px 10px 4px 8px;
+      font-size: .68rem;
+      font-weight: 700;
+      color: #fff;
+      border-radius: 0 4px 4px 0;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      pointer-events: none;
+    }
+    .ribbon-film { background: #c0392b; }
+    .ribbon-tv   { background: #1a6fa8; }
 
     .card .title {
       font-size: .9rem;
@@ -193,7 +216,7 @@
 </head>
 <body>
 
-<h1>What I have watched 2026</h1>
+<h1>Film och -serielista</h1>
 <div id="grid"></div>
 
 <!-- Lightbox -->
@@ -225,9 +248,7 @@
     'Slow Horses',
   ];
 
-  // Will hold {title, url} for cards that have a poster
   const items = [];
-
   let current = 0;
 
   const lightbox  = document.getElementById('lightbox');
@@ -237,15 +258,39 @@
   const counter   = document.getElementById('counter');
 
   async function fetchInfo(title) {
-    const url = `https://api.themoviedb.org/3/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(title)}`;
-    const res = await fetch(url);
-    const data = await res.json();
-    const result = data.results?.find(r => r.poster_path);
+    const searchRes = await fetch(
+      `https://api.themoviedb.org/3/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(title)}`
+    );
+    const searchData = await searchRes.json();
+    const result = searchData.results?.find(r => r.poster_path);
     if (!result) return null;
+
+    let seasons = null;
+    if (result.media_type === 'tv') {
+      const tvRes = await fetch(
+        `https://api.themoviedb.org/3/tv/${result.id}?api_key=${API_KEY}`
+      );
+      const tvData = await tvRes.json();
+      seasons = tvData.number_of_seasons ?? null;
+    }
+
     return {
-      poster: IMG_BASE + result.poster_path,
-      desc: result.overview || '',
+      poster:    IMG_BASE + result.poster_path,
+      desc:      result.overview || '',
+      mediaType: result.media_type,
+      seasons,
     };
+  }
+
+  function ribbonHTML(info) {
+    if (info.mediaType === 'movie') {
+      return `<span class="ribbon ribbon-film">Film</span>`;
+    }
+    if (info.mediaType === 'tv' && info.seasons !== null) {
+      const label = info.seasons === 1 ? '1 säsong' : `${info.seasons} säsonger`;
+      return `<span class="ribbon ribbon-tv">${label}</span>`;
+    }
+    return '';
   }
 
   async function render() {
@@ -261,13 +306,15 @@
         items.push({ title, url: info.poster, desc: info.desc });
 
         card.innerHTML = `
-          <img src="${info.poster}" alt="${title}">
+          <div class="poster-wrap">
+            <img src="${info.poster}" alt="${title}">
+            ${ribbonHTML(info)}
+          </div>
           <span class="title">${title}</span>
           <span class="desc">${info.desc}</span>
         `;
         card.addEventListener('click', () => openLightbox(index));
 
-        // filmstrip thumb
         const ft = document.createElement('div');
         ft.className = 'strip-thumb';
         ft.id = `ft-${index}`;
@@ -334,7 +381,6 @@
     else if (e.key === 'Escape') closeLightbox();
   });
 
-  // touch swipe
   let touchX = null;
   lbImg.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; });
   lbImg.addEventListener('touchend', e => {
