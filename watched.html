@@ -136,6 +136,21 @@
       user-select: none;
     }
 
+    #lb-ribbon {
+      position: absolute;
+      top: 10px;
+      left: calc(50% - min(46vw, 40vh * 2/3));
+      padding: 5px 12px 5px 10px;
+      font-size: .75rem;
+      font-weight: 700;
+      color: #fff;
+      border-radius: 0 4px 4px 0;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      pointer-events: none;
+      z-index: 2;
+    }
+
     .lb-btn {
       position: absolute;
       top: 50%;
@@ -225,6 +240,7 @@
   <div id="lb-img-wrap">
     <button class="lb-btn" id="lb-prev" title="Previous (←)">&#8249;</button>
     <img id="lb-img" src="" alt="">
+    <span id="lb-ribbon"></span>
     <button class="lb-btn" id="lb-next" title="Next (→)">&#8250;</button>
   </div>
   <div id="counter"></div>
@@ -253,6 +269,7 @@
 
   const lightbox  = document.getElementById('lightbox');
   const lbImg     = document.getElementById('lb-img');
+  const lbRibbon  = document.getElementById('lb-ribbon');
   const lbCaption = document.getElementById('lb-caption');
   const filmstrip = document.getElementById('filmstrip');
   const counter   = document.getElementById('counter');
@@ -303,7 +320,7 @@
 
       if (info) {
         const index = items.length;
-        items.push({ title, url: info.poster, desc: info.desc });
+        items.push({ title, url: info.poster, desc: info.desc, mediaType: info.mediaType, seasons: info.seasons });
 
         card.innerHTML = `
           <div class="poster-wrap">
@@ -356,6 +373,18 @@
       lbImg.alt = items[current].title;
       lbImg.onload = () => { lbImg.style.opacity = '1'; };
       lbCaption.innerHTML = `<strong>${items[current].title}</strong>${items[current].desc ? `<br><span style="font-size:.8rem;color:#aaa;font-weight:normal">${items[current].desc}</span>` : ''}`;
+      const item = items[current];
+      if (item.mediaType === 'movie') {
+        lbRibbon.textContent = 'Film';
+        lbRibbon.style.background = '#c0392b';
+        lbRibbon.style.display = 'inline';
+      } else if (item.mediaType === 'tv' && item.seasons !== null) {
+        lbRibbon.textContent = item.seasons === 1 ? '1 säsong' : `${item.seasons} säsonger`;
+        lbRibbon.style.background = '#1a6fa8';
+        lbRibbon.style.display = 'inline';
+      } else {
+        lbRibbon.style.display = 'none';
+      }
       counter.textContent = `${current + 1} / ${items.length}`;
 
       document.querySelectorAll('.strip-thumb').forEach((el, i) => {
