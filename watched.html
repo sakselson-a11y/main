@@ -56,6 +56,18 @@
       line-height: 1.3;
     }
 
+    .card .desc {
+      font-size: .78rem;
+      text-align: center;
+      color: #888;
+      line-height: 1.4;
+      max-width: 180px;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
     .card .no-poster {
       width: 100%;
       aspect-ratio: 2/3;
@@ -138,11 +150,13 @@
     #lb-close:hover { color: #fff; }
 
     #lb-caption {
-      padding: 10px 0 4px;
+      padding: 10px 16px 4px;
       font-size: 1rem;
       color: #eee;
       text-align: center;
       font-weight: 500;
+      max-width: 600px;
+      line-height: 1.5;
     }
 
     #counter {
@@ -205,6 +219,8 @@
     'Rooster',
     'Married at First Sight Australia',
     'Stranger Things',
+    'Expedition Robinson',
+    'One Battle After Another',
   ];
 
   // Will hold {title, url} for cards that have a poster
@@ -218,29 +234,34 @@
   const filmstrip = document.getElementById('filmstrip');
   const counter   = document.getElementById('counter');
 
-  async function fetchPoster(title) {
+  async function fetchInfo(title) {
     const url = `https://api.themoviedb.org/3/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(title)}`;
     const res = await fetch(url);
     const data = await res.json();
     const result = data.results?.find(r => r.poster_path);
-    return result ? IMG_BASE + result.poster_path : null;
+    if (!result) return null;
+    return {
+      poster: IMG_BASE + result.poster_path,
+      desc: result.overview || '',
+    };
   }
 
   async function render() {
     const grid = document.getElementById('grid');
 
     await Promise.all(titles.map(async title => {
-      const posterUrl = await fetchPoster(title);
+      const info = await fetchInfo(title);
       const card = document.createElement('div');
       card.className = 'card';
 
-      if (posterUrl) {
+      if (info) {
         const index = items.length;
-        items.push({ title, url: posterUrl });
+        items.push({ title, url: info.poster, desc: info.desc });
 
         card.innerHTML = `
-          <img src="${posterUrl}" alt="${title}">
+          <img src="${info.poster}" alt="${title}">
           <span class="title">${title}</span>
+          <span class="desc">${info.desc}</span>
         `;
         card.addEventListener('click', () => openLightbox(index));
 
@@ -248,7 +269,7 @@
         const ft = document.createElement('div');
         ft.className = 'strip-thumb';
         ft.id = `ft-${index}`;
-        ft.innerHTML = `<img src="${posterUrl}" alt="${title}">`;
+        ft.innerHTML = `<img src="${info.poster}" alt="${title}">`;
         ft.addEventListener('click', () => goTo(index));
         filmstrip.appendChild(ft);
       } else {
@@ -285,7 +306,7 @@
       lbImg.src = items[current].url;
       lbImg.alt = items[current].title;
       lbImg.onload = () => { lbImg.style.opacity = '1'; };
-      lbCaption.textContent = items[current].title;
+      lbCaption.innerHTML = `<strong>${items[current].title}</strong>${items[current].desc ? `<br><span style="font-size:.8rem;color:#aaa;font-weight:normal">${items[current].desc}</span>` : ''}`;
       counter.textContent = `${current + 1} / ${items.length}`;
 
       document.querySelectorAll('.strip-thumb').forEach((el, i) => {
