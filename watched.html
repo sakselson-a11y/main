@@ -128,8 +128,9 @@
       overflow: hidden;
     }
     #lb-img {
-      max-width: 92vw;
-      max-height: 80vh;
+      height: min(78vh, 92vw * 3 / 2);
+      width: calc(min(78vh, 92vw * 3 / 2) * 2 / 3);
+      aspect-ratio: 2/3;
       border-radius: 8px;
       object-fit: contain;
       transition: opacity .15s;
