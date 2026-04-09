@@ -108,18 +108,22 @@
       overflow: hidden;
     }
 
-    .card .providers {
+    .providers {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
       display: flex;
       flex-wrap: wrap;
-      justify-content: center;
+      justify-content: flex-end;
       gap: 4px;
-      margin-top: -2px;
+      max-width: 80%;
     }
-    .card .providers img {
-      width: 24px;
-      height: 24px;
-      border-radius: 4px;
+    .providers img {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
       object-fit: cover;
+      box-shadow: 0 1px 4px rgba(0,0,0,.6);
     }
 
     .card .no-poster {
@@ -166,6 +170,26 @@
       object-fit: contain;
       transition: opacity .15s;
       user-select: none;
+    }
+
+    #lb-providers {
+      position: absolute;
+      bottom: 10px;
+      right: calc(50% - min(46vw, 40vh * 2/3));
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      max-width: 40%;
+      pointer-events: none;
+      z-index: 2;
+    }
+    #lb-providers img {
+      width: 36px;
+      height: 36px;
+      border-radius: 7px;
+      object-fit: cover;
+      box-shadow: 0 1px 5px rgba(0,0,0,.7);
     }
 
     #lb-ribbon {
@@ -274,6 +298,7 @@
     <button class="lb-btn" id="lb-prev" title="Previous (←)">&#8249;</button>
     <img id="lb-img" src="" alt="">
     <span id="lb-ribbon"></span>
+    <div id="lb-providers"></div>
     <button class="lb-btn" id="lb-next" title="Next (→)">&#8250;</button>
   </div>
   <div id="counter"></div>
@@ -292,12 +317,13 @@
   const items = [];
   let current = 0;
 
-  const lightbox  = document.getElementById('lightbox');
-  const lbImg     = document.getElementById('lb-img');
-  const lbRibbon  = document.getElementById('lb-ribbon');
-  const lbCaption = document.getElementById('lb-caption');
-  const filmstrip = document.getElementById('filmstrip');
-  const counter   = document.getElementById('counter');
+  const lightbox    = document.getElementById('lightbox');
+  const lbImg       = document.getElementById('lb-img');
+  const lbRibbon    = document.getElementById('lb-ribbon');
+  const lbProviders = document.getElementById('lb-providers');
+  const lbCaption   = document.getElementById('lb-caption');
+  const filmstrip   = document.getElementById('filmstrip');
+  const counter     = document.getElementById('counter');
 
   async function fetchInfo(title) {
     const searchRes = await fetch(
@@ -362,10 +388,10 @@
           <div class="poster-wrap">
             <img src="${info.poster}" alt="${title}">
             ${ribbonHTML(info)}
+            ${provLogos ? `<div class="providers">${provLogos}</div>` : ''}
           </div>
           <span class="title">${title}</span>
           <span class="desc">${info.desc}</span>
-          ${provLogos ? `<div class="providers">${provLogos}</div>` : ''}
         `;
         card.addEventListener('click', () => openLightbox(index));
 
@@ -409,10 +435,10 @@
       lbImg.src = items[current].url;
       lbImg.alt = items[current].title;
       lbImg.onload = () => { lbImg.style.opacity = '1'; };
-      const provHtml = items[current].providers?.map(p =>
-        `<img src="https://image.tmdb.org/t/p/w45${p.logo_path}" alt="${p.provider_name}" title="${p.provider_name}" style="width:28px;height:28px;border-radius:5px;object-fit:cover;">`
-      ).join('') ?? '';
-      lbCaption.innerHTML = `<strong>${items[current].title}</strong>${items[current].desc ? `<br><span style="font-size:.8rem;color:#aaa;font-weight:normal">${items[current].desc}</span>` : ''}${provHtml ? `<br><span style="display:inline-flex;gap:5px;margin-top:6px;flex-wrap:wrap;justify-content:center">${provHtml}</span>` : ''}`;
+      lbCaption.innerHTML = `<strong>${items[current].title}</strong>${items[current].desc ? `<br><span style="font-size:.8rem;color:#aaa;font-weight:normal">${items[current].desc}</span>` : ''}`;
+      lbProviders.innerHTML = (items[current].providers ?? []).map(p =>
+        `<img src="https://image.tmdb.org/t/p/w45${p.logo_path}" alt="${p.provider_name}" title="${p.provider_name}">`
+      ).join('');
       const item = items[current];
       if (item.mediaType === 'movie') {
         lbRibbon.textContent = 'Film';
