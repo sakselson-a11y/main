@@ -3,41 +3,100 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Film och -serielista</title>
+  <title>Akselson — Filmer och serier</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: system-ui, sans-serif;
-      background: #111;
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #0e0e0e;
       color: #eee;
       min-height: 100vh;
-      padding: 32px 16px;
     }
 
-    nav {
-      text-align: center;
-      margin-bottom: 40px;
+    /* ── Header ── */
+    header {
+      background: #161616;
+      border-bottom: 1px solid #222;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
     }
-    nav a {
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    .logo-mark {
+      width: 38px;
+      height: 38px;
+      background: #f5c800;
+      color: #111;
+      font-size: 1.3rem;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 7px;
+      letter-spacing: -.03em;
+      flex-shrink: 0;
+    }
+    .logo-word {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      color: #fff;
+      text-transform: uppercase;
+    }
+    .logo-word span { color: #f5c800; }
+
+    header nav a {
       display: inline-block;
-      padding: 8px 20px;
+      padding: 7px 16px;
       background: #f5c800;
       color: #111;
       text-decoration: none;
       border-radius: 6px;
-      font-size: .9rem;
+      font-size: .85rem;
       font-weight: 600;
       transition: background .15s;
     }
-    nav a:hover { background: #ffd700; }
+    header nav a:hover { background: #ffd700; }
 
-    h1 {
+    /* ── Page title ── */
+    .page-hero {
       text-align: center;
-      font-size: 2rem;
-      margin-bottom: 32px;
-      letter-spacing: .02em;
+      padding: 48px 16px 36px;
     }
+    .page-hero h1 {
+      font-size: clamp(1.6rem, 4vw, 2.6rem);
+      font-weight: 900;
+      letter-spacing: -.01em;
+      line-height: 1.1;
+      background: linear-gradient(135deg, #fff 40%, #f5c800);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .page-hero .underline {
+      width: 48px;
+      height: 3px;
+      background: #f5c800;
+      border-radius: 2px;
+      margin: 14px auto 0;
+    }
+
+    /* ── Grid ── */
+    .content { padding: 0 16px 48px; }
 
     #grid {
       display: grid;
@@ -287,9 +346,22 @@
 </head>
 <body>
 
-<h1>Filmer och serier jag rekommenderar</h1>
-<nav><a href="tips.html">Tips &rarr;</a></nav>
+<header>
+  <a class="brand" href="watched.html">
+    <div class="logo-mark">A</div>
+    <div class="logo-word"><span>A</span>KSELSON</div>
+  </a>
+  <nav><a href="tips.html">Tips &rarr;</a></nav>
+</header>
+
+<div class="page-hero">
+  <h1>Filmer och serier jag rekommenderar</h1>
+  <div class="underline"></div>
+</div>
+
+<div class="content">
 <div id="grid"></div>
+</div>
 
 <!-- Lightbox -->
 <div id="lightbox">
