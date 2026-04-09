@@ -321,6 +321,29 @@
     .add-form button:disabled { opacity: .5; cursor: default; }
     .add-msg { margin-top: 10px; font-size: .85rem; color: #888; min-height: 1.2em; }
 
+    /* ── Filter bar ── */
+    #filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      max-width: 1200px;
+      margin: 0 auto 24px;
+      padding: 0 16px;
+    }
+    .filter-btn {
+      padding: 6px 14px;
+      background: #1e1e1e;
+      color: #aaa;
+      border: 1px solid #333;
+      border-radius: 20px;
+      font-family: inherit;
+      font-size: .8rem;
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .filter-btn:hover { background: #2a2a2a; color: #ddd; }
+    .filter-btn.active { background: #f5c800; color: #111; border-color: #f5c800; font-weight: 600; }
+
     #lb-ribbon {
       position: absolute;
       top: 10px;
@@ -430,6 +453,9 @@
 </div>
 
 <div class="content">
+<div id="filter-bar">
+  <button class="filter-btn active" data-genre="all">Alla</button>
+</div>
 <div id="grid"></div>
 </div>
 
@@ -460,6 +486,36 @@
 <script>
   const API_KEY = '0083056b0be76892c6690d2421efddde';
   const IMG_BASE = 'https://image.tmdb.org/t/p/w500';
+
+  let genreMap = {};
+  async function fetchGenres() {
+    const [tvRes, movRes] = await Promise.all([
+      fetch(`https://api.themoviedb.org/3/genre/tv/list?api_key=${API_KEY}&language=sv`),
+      fetch(`https://api.themoviedb.org/3/genre/movie/list?api_key=${API_KEY}&language=sv`)
+    ]);
+    const [tvData, movData] = await Promise.all([tvRes.json(), movRes.json()]);
+    [...(tvData.genres||[]), ...(movData.genres||[])].forEach(g => genreMap[g.id] = g.name);
+  }
+
+  function addFilterButton(genre) {
+    if (!genre || document.querySelector(`#filter-bar [data-genre="${genre}"]`)) return;
+    const btn = document.createElement('button');
+    btn.className = 'filter-btn';
+    btn.dataset.genre = genre;
+    btn.textContent = genre;
+    btn.addEventListener('click', () => updateFilter(genre));
+    document.getElementById('filter-bar').appendChild(btn);
+  }
+
+  function updateFilter(genre) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.genre === genre));
+    document.querySelectorAll('#grid .card').forEach(card => {
+      const genres = JSON.parse(card.dataset.genres || '[]');
+      card.style.display = (genre === 'all' || genres.includes(genre)) ? '' : 'none';
+    });
+  }
+
+  document.querySelector('.filter-btn[data-genre="all"]').addEventListener('click', () => updateFilter('all'));
 
   const SVT_PLAY = { provider_name: 'SVT Play', logoUrl: 'https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://www.svtplay.se&size=64' };
 
@@ -516,11 +572,10 @@
     const providers = [...(provData.results?.SE?.flatrate ?? []), ...(show.extraProviders ?? [])];
 
     return {
-      poster: IMG_BASE + result.poster_path,
-      desc:   result.overview || '',
-      mediaType,
-      seasons,
-      providers,
+      poster:   IMG_BASE + result.poster_path,
+      desc:     result.overview || '',
+      mediaType, seasons, providers,
+      genres:   (result.genre_ids || []).map(id => genreMap[id]).filter(Boolean),
     };
   }
 
@@ -543,8 +598,10 @@
     card.className = 'card';
 
     if (info) {
-      const itemObj = { title, url: info.poster, desc: info.desc, mediaType: info.mediaType, seasons: info.seasons, providers: info.providers };
+      const itemObj = { title, url: info.poster, desc: info.desc, mediaType: info.mediaType, seasons: info.seasons, providers: info.providers, genres: info.genres || [] };
       items.push(itemObj);
+      card.dataset.genres = JSON.stringify(info.genres || []);
+      (info.genres || []).forEach(addFilterButton);
 
       const provLogos = info.providers.map(p =>
         `<img src="${p.logoUrl ?? `https://image.tmdb.org/t/p/w45${p.logo_path}`}" alt="${p.provider_name}" title="${p.provider_name}">`
@@ -725,6 +782,7 @@
   });
 
   async function render() {
+    await fetchGenres();
     const grid = document.getElementById('grid');
     const removed = loadRemoved();
     const allShows = [...shows, ...loadSaved().map(t => ({ title: t }))].filter(s => !removed.has(s.title ?? s));

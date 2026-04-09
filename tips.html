@@ -321,6 +321,52 @@
     .add-form button:disabled { opacity: .5; cursor: default; }
     .add-msg { margin-top: 10px; font-size: .85rem; color: #888; min-height: 1.2em; }
 
+    /* ── Filter bar ── */
+    #filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      max-width: 1200px;
+      margin: 0 auto 24px;
+      padding: 0 16px;
+    }
+    .filter-btn {
+      padding: 6px 14px;
+      background: #1e1e1e;
+      color: #aaa;
+      border: 1px solid #333;
+      border-radius: 20px;
+      font-family: inherit;
+      font-size: .8rem;
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .filter-btn:hover { background: #2a2a2a; color: #ddd; }
+    .filter-btn.active { background: #f5c800; color: #111; border-color: #f5c800; font-weight: 600; }
+
+    /* ── Watched badge ── */
+    .watch-btn {
+      position: absolute;
+      bottom: 6px; left: 6px;
+      width: 28px; height: 28px;
+      background: rgba(0,0,0,.65);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      font-size: 1rem;
+      cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 3;
+      transition: opacity .15s, background .15s;
+      line-height: 1;
+    }
+    .card:hover .watch-btn { opacity: 1; pointer-events: auto; }
+    .watch-btn.watched { opacity: 1; pointer-events: auto; background: #27ae60; }
+
     #lb-ribbon {
       position: absolute;
       top: 10px;
@@ -430,6 +476,9 @@
 </div>
 
 <div class="content">
+<div id="filter-bar">
+  <button class="filter-btn active" data-genre="all">Alla</button>
+</div>
 <div id="grid"></div>
 </div>
 
@@ -460,6 +509,61 @@
 <script>
   const API_KEY = '0083056b0be76892c6690d2421efddde';
   const IMG_BASE = 'https://image.tmdb.org/t/p/w500';
+
+  let genreMap = {};
+  async function fetchGenres() {
+    const [tvRes, movRes] = await Promise.all([
+      fetch(`https://api.themoviedb.org/3/genre/tv/list?api_key=${API_KEY}&language=sv`),
+      fetch(`https://api.themoviedb.org/3/genre/movie/list?api_key=${API_KEY}&language=sv`)
+    ]);
+    const [tvData, movData] = await Promise.all([tvRes.json(), movRes.json()]);
+    [...(tvData.genres||[]), ...(movData.genres||[])].forEach(g => genreMap[g.id] = g.name);
+  }
+
+  function addFilterButton(genre) {
+    if (!genre || document.querySelector(`#filter-bar [data-genre="${genre}"]`)) return;
+    const btn = document.createElement('button');
+    btn.className = 'filter-btn';
+    btn.dataset.genre = genre;
+    btn.textContent = genre;
+    btn.addEventListener('click', () => updateFilter(genre));
+    document.getElementById('filter-bar').appendChild(btn);
+  }
+
+  function updateFilter(genre) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.genre === genre));
+    document.querySelectorAll('#grid .card').forEach(card => {
+      const genres = JSON.parse(card.dataset.genres || '[]');
+      card.style.display = (genre === 'all' || genres.includes(genre)) ? '' : 'none';
+    });
+  }
+
+  document.querySelector('.filter-btn[data-genre="all"]').addEventListener('click', () => updateFilter('all'));
+
+  // ── Watched badge ──
+  const WATCHED_SET_KEY = 'akselson-tips-watched-set';
+  function loadWatchedSet() { try { return new Set(JSON.parse(localStorage.getItem(WATCHED_SET_KEY)) || []); } catch { return new Set(); } }
+
+  function toggleWatched(title, btn) {
+    const ws = loadWatchedSet();
+    if (ws.has(title)) {
+      ws.delete(title);
+      // Remove from watched page
+      const wSaved = JSON.parse(localStorage.getItem('akselson-watched-added') || '[]');
+      localStorage.setItem('akselson-watched-added', JSON.stringify(wSaved.filter(t => t !== title)));
+    } else {
+      ws.add(title);
+      // Also un-remove from watched page in case it was removed there
+      const wRemoved = JSON.parse(localStorage.getItem('akselson-watched-removed') || '[]');
+      localStorage.setItem('akselson-watched-removed', JSON.stringify(wRemoved.filter(t => t !== title)));
+      // Add to watched page saved list
+      const wSaved = JSON.parse(localStorage.getItem('akselson-watched-added') || '[]');
+      if (!wSaved.includes(title)) { wSaved.push(title); localStorage.setItem('akselson-watched-added', JSON.stringify(wSaved)); }
+    }
+    localStorage.setItem(WATCHED_SET_KEY, JSON.stringify([...ws]));
+    btn.classList.toggle('watched', ws.has(title));
+    btn.title = ws.has(title) ? 'Sedd ✓ — klicka för att ångra' : 'Markera som sedd';
+  }
 
   const shows = [
     { title: "Margo's Got Money Troubles" },
@@ -518,11 +622,10 @@
     const providers = [...(provData.results?.SE?.flatrate ?? []), ...(show.extraProviders ?? [])];
 
     return {
-      poster: IMG_BASE + result.poster_path,
-      desc:   result.overview || '',
-      mediaType: resolvedType,
-      seasons,
-      providers,
+      poster:   IMG_BASE + result.poster_path,
+      desc:     result.overview || '',
+      mediaType: resolvedType, seasons, providers,
+      genres:   (result.genre_ids || []).map(id => genreMap[id]).filter(Boolean),
     };
   }
 
@@ -545,8 +648,13 @@
     card.className = 'card';
 
     if (info) {
-      const itemObj = { title, url: info.poster, desc: info.desc, mediaType: info.mediaType, seasons: info.seasons, providers: info.providers };
+      const itemObj = { title, url: info.poster, desc: info.desc, mediaType: info.mediaType, seasons: info.seasons, providers: info.providers, genres: info.genres || [] };
       items.push(itemObj);
+      card.dataset.genres = JSON.stringify(info.genres || []);
+      (info.genres || []).forEach(addFilterButton);
+
+      const ws = loadWatchedSet();
+      const isWatched = ws.has(title);
 
       const provLogos = info.providers.map(p =>
         `<img src="${p.logoUrl ?? `https://image.tmdb.org/t/p/w45${p.logo_path}`}" alt="${p.provider_name}" title="${p.provider_name}">`
@@ -556,6 +664,7 @@
         <div class="poster-wrap">
           <img src="${info.poster}" alt="${title}">
           <button class="remove-btn" title="Ta bort">&#x2715;</button>
+          <button class="watch-btn ${isWatched ? 'watched' : ''}" title="${isWatched ? 'Sedd ✓ — klicka för att ångra' : 'Markera som sedd'}">✓</button>
           ${ribbonHTML(info)}
           ${provLogos ? `<div class="providers">${provLogos}</div>` : ''}
         </div>
@@ -563,6 +672,10 @@
         <span class="desc">${info.desc}</span>
       `;
       card.addEventListener('click', () => { const i = items.indexOf(itemObj); if (i !== -1) openLightbox(i); });
+      card.querySelector('.watch-btn').addEventListener('click', e => {
+        e.stopPropagation();
+        toggleWatched(title, e.currentTarget);
+      });
       card.querySelector('.remove-btn').addEventListener('click', e => {
         e.stopPropagation();
         if (lightbox.classList.contains('open')) closeLightbox();
@@ -654,6 +767,7 @@
   });
 
   async function render() {
+    await fetchGenres();
     const grid = document.getElementById('grid');
     const removed = loadRemoved();
     const allShows = [...shows, ...loadSaved().map(t => ({ title: t }))].filter(s => !removed.has(s.title ?? s));
