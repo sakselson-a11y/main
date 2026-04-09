@@ -185,6 +185,26 @@
       box-shadow: 0 1px 4px rgba(0,0,0,.6);
     }
 
+    .remove-btn {
+      position: absolute;
+      top: 6px; right: 6px;
+      width: 26px; height: 26px;
+      background: rgba(0,0,0,.65);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      font-size: .9rem;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 3;
+      transition: background .15s;
+      line-height: 1;
+    }
+    .card:hover .remove-btn { display: flex; }
+    .remove-btn:hover { background: rgba(180,0,0,.85); }
+
     .card .no-poster {
       width: 100%;
       aspect-ratio: 2/3;
@@ -519,13 +539,14 @@
 
   async function renderShow(show, grid) {
     const title = show.title ?? show;
+    if (loadRemoved().has(title)) return;
     const info = await fetchInfo(typeof show === 'string' ? { title: show } : show);
     const card = document.createElement('div');
     card.className = 'card';
 
     if (info) {
-      const index = items.length;
-      items.push({ title, url: info.poster, desc: info.desc, mediaType: info.mediaType, seasons: info.seasons, providers: info.providers });
+      const itemObj = { title, url: info.poster, desc: info.desc, mediaType: info.mediaType, seasons: info.seasons, providers: info.providers };
+      items.push(itemObj);
 
       const provLogos = info.providers.map(p =>
         `<img src="${p.logoUrl ?? `https://image.tmdb.org/t/p/w45${p.logo_path}`}" alt="${p.provider_name}" title="${p.provider_name}">`
@@ -534,19 +555,30 @@
       card.innerHTML = `
         <div class="poster-wrap">
           <img src="${info.poster}" alt="${title}">
+          <button class="remove-btn" title="Ta bort">&#x2715;</button>
           ${ribbonHTML(info)}
           ${provLogos ? `<div class="providers">${provLogos}</div>` : ''}
         </div>
         <span class="title">${title}</span>
         <span class="desc">${info.desc}</span>
       `;
-      card.addEventListener('click', () => openLightbox(index));
+      card.addEventListener('click', () => { const i = items.indexOf(itemObj); if (i !== -1) openLightbox(i); });
+      card.querySelector('.remove-btn').addEventListener('click', e => {
+        e.stopPropagation();
+        if (lightbox.classList.contains('open')) closeLightbox();
+        const i = items.indexOf(itemObj);
+        if (i !== -1) items.splice(i, 1);
+        card.remove();
+        rebuildFilmstrip();
+        addToRemoved(title);
+        saveTitles(loadSaved().filter(t => t !== title));
+      });
 
       const ft = document.createElement('div');
       ft.className = 'strip-thumb';
-      ft.id = `ft-${index}`;
+      ft.id = `ft-${items.length - 1}`;
       ft.innerHTML = `<img src="${info.poster}" alt="${title}">`;
-      ft.addEventListener('click', () => goTo(index));
+      ft.addEventListener('click', () => { const i = items.indexOf(itemObj); if (i !== -1) goTo(i); });
       filmstrip.appendChild(ft);
     } else {
       card.innerHTML = `
@@ -558,15 +590,28 @@
     grid.appendChild(card);
   }
 
-  const STORAGE_KEY = 'akselson-tips-added';
+  const STORAGE_KEY   = 'akselson-tips-added';
+  const REMOVED_KEY   = 'akselson-tips-removed';
 
-  function loadSaved() {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
-    catch { return []; }
+  function loadSaved()   { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { return []; } }
+  function saveTitles(t) { localStorage.setItem(STORAGE_KEY, JSON.stringify(t)); }
+  function loadRemoved() { try { return new Set(JSON.parse(localStorage.getItem(REMOVED_KEY)) || []); } catch { return new Set(); } }
+  function addToRemoved(title) {
+    const r = loadRemoved(); r.add(title);
+    localStorage.setItem(REMOVED_KEY, JSON.stringify([...r]));
   }
 
-  function saveTitles(titles) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(titles));
+  function rebuildFilmstrip() {
+    filmstrip.innerHTML = '';
+    items.forEach((item, i) => {
+      const ft = document.createElement('div');
+      ft.className = 'strip-thumb';
+      ft.id = `ft-${i}`;
+      ft.innerHTML = `<img src="${item.url}" alt="${item.title}">`;
+      ft.addEventListener('click', () => goTo(i));
+      filmstrip.appendChild(ft);
+    });
+    if (current >= items.length) current = Math.max(0, items.length - 1);
   }
 
   async function addShow(title) {
@@ -610,7 +655,8 @@
 
   async function render() {
     const grid = document.getElementById('grid');
-    const allShows = [...shows, ...loadSaved().map(t => ({ title: t }))];
+    const removed = loadRemoved();
+    const allShows = [...shows, ...loadSaved().map(t => ({ title: t }))].filter(s => !removed.has(s.title ?? s));
     await Promise.all(allShows.map(show => renderShow(show, grid)));
   }
 
