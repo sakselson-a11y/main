@@ -251,6 +251,56 @@
       box-shadow: 0 1px 5px rgba(0,0,0,.7);
     }
 
+    /* ── Add form ── */
+    .add-section {
+      max-width: 480px;
+      margin: 48px auto 64px;
+      padding: 0 16px;
+      text-align: center;
+    }
+    .add-section h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #aaa;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .add-form {
+      display: flex;
+      gap: 8px;
+    }
+    .add-form input {
+      flex: 1;
+      padding: 10px 14px;
+      background: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 7px;
+      color: #eee;
+      font-family: inherit;
+      font-size: .95rem;
+      outline: none;
+      transition: border-color .15s;
+    }
+    .add-form input:focus { border-color: #f5c800; }
+    .add-form input::placeholder { color: #555; }
+    .add-form button {
+      padding: 10px 18px;
+      background: #f5c800;
+      color: #111;
+      border: none;
+      border-radius: 7px;
+      font-family: inherit;
+      font-size: .95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .15s;
+      white-space: nowrap;
+    }
+    .add-form button:hover { background: #ffd700; }
+    .add-form button:disabled { opacity: .5; cursor: default; }
+    .add-msg { margin-top: 10px; font-size: .85rem; color: #888; min-height: 1.2em; }
+
     #lb-ribbon {
       position: absolute;
       top: 10px;
@@ -363,6 +413,15 @@
 <div id="grid"></div>
 </div>
 
+<div class="add-section">
+  <h2>Lägg till</h2>
+  <div class="add-form">
+    <input type="text" id="add-input" placeholder="Titel på film eller serie…">
+    <button id="add-btn">Lägg till</button>
+  </div>
+  <div class="add-msg" id="add-msg"></div>
+</div>
+
 <!-- Lightbox -->
 <div id="lightbox">
   <button id="lb-close" title="Close (Esc)">&#x2715;</button>
@@ -456,49 +515,45 @@
     return '';
   }
 
-  async function render() {
-    const grid = document.getElementById('grid');
+  async function renderShow(show, grid) {
+    const title = show.title ?? show;
+    const info = await fetchInfo(typeof show === 'string' ? { title: show } : show);
+    const card = document.createElement('div');
+    card.className = 'card';
 
-    await Promise.all(shows.map(async show => {
-      const title = show.title ?? show;
-      const info = await fetchInfo(typeof show === 'string' ? { title: show } : show);
-      const card = document.createElement('div');
-      card.className = 'card';
+    if (info) {
+      const index = items.length;
+      items.push({ title, url: info.poster, desc: info.desc, mediaType: info.mediaType, seasons: info.seasons, providers: info.providers });
 
-      if (info) {
-        const index = items.length;
-        items.push({ title, url: info.poster, desc: info.desc, mediaType: info.mediaType, seasons: info.seasons, providers: info.providers });
+      const provLogos = info.providers.map(p =>
+        `<img src="${p.logoUrl ?? `https://image.tmdb.org/t/p/w45${p.logo_path}`}" alt="${p.provider_name}" title="${p.provider_name}">`
+      ).join('');
 
-        const provLogos = info.providers.map(p =>
-          `<img src="${p.logoUrl ?? `https://image.tmdb.org/t/p/w45${p.logo_path}`}" alt="${p.provider_name}" title="${p.provider_name}">`
-        ).join('');
+      card.innerHTML = `
+        <div class="poster-wrap">
+          <img src="${info.poster}" alt="${title}">
+          ${ribbonHTML(info)}
+          ${provLogos ? `<div class="providers">${provLogos}</div>` : ''}
+        </div>
+        <span class="title">${title}</span>
+        <span class="desc">${info.desc}</span>
+      `;
+      card.addEventListener('click', () => openLightbox(index));
 
-        card.innerHTML = `
-          <div class="poster-wrap">
-            <img src="${info.poster}" alt="${title}">
-            ${ribbonHTML(info)}
-            ${provLogos ? `<div class="providers">${provLogos}</div>` : ''}
-          </div>
-          <span class="title">${title}</span>
-          <span class="desc">${info.desc}</span>
-        `;
-        card.addEventListener('click', () => openLightbox(index));
+      const ft = document.createElement('div');
+      ft.className = 'strip-thumb';
+      ft.id = `ft-${index}`;
+      ft.innerHTML = `<img src="${info.poster}" alt="${title}">`;
+      ft.addEventListener('click', () => goTo(index));
+      filmstrip.appendChild(ft);
+    } else {
+      card.innerHTML = `
+        <div class="no-poster">No poster found</div>
+        <span class="title">${title}</span>
+      `;
+    }
 
-        const ft = document.createElement('div');
-        ft.className = 'strip-thumb';
-        ft.id = `ft-${index}`;
-        ft.innerHTML = `<img src="${info.poster}" alt="${title}">`;
-        ft.addEventListener('click', () => goTo(index));
-        filmstrip.appendChild(ft);
-      } else {
-        card.innerHTML = `
-          <div class="no-poster">No poster found</div>
-          <span class="title">${title}</span>
-        `;
-      }
-
-      grid.appendChild(card);
-    }));
+    grid.appendChild(card);
   }
 
   function openLightbox(index) {
@@ -573,6 +628,62 @@
     if (Math.abs(dx) > 40) goTo(dx < 0 ? current + 1 : current - 1);
     touchX = null;
   });
+
+  const STORAGE_KEY = 'akselson-watched-added';
+
+  function loadSaved() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+    catch { return []; }
+  }
+
+  function saveTitles(titles) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(titles));
+  }
+
+  async function addShow(title) {
+    const msg = document.getElementById('add-msg');
+    const btn = document.getElementById('add-btn');
+    const input = document.getElementById('add-input');
+    const grid = document.getElementById('grid');
+
+    btn.disabled = true;
+    msg.textContent = 'Söker…';
+
+    const countBefore = items.length;
+    await renderShow({ title }, grid);
+
+    if (items.length === countBefore) {
+      msg.textContent = `Hittades inte: "${title}"`;
+      btn.disabled = false;
+      return;
+    }
+
+    const saved = loadSaved();
+    saved.push(title);
+    saveTitles(saved);
+
+    input.value = '';
+    msg.textContent = `"${title}" lades till!`;
+    setTimeout(() => { msg.textContent = ''; }, 3000);
+    btn.disabled = false;
+  }
+
+  document.getElementById('add-btn').addEventListener('click', () => {
+    const val = document.getElementById('add-input').value.trim();
+    if (val) addShow(val);
+  });
+  document.getElementById('add-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      const val = e.target.value.trim();
+      if (val) addShow(val);
+    }
+  });
+
+  async function render() {
+    const grid = document.getElementById('grid');
+    const allShows = [...shows, ...loadSaved().map(t => ({ title: t }))];
+    await Promise.all(allShows.map(show => renderShow(show, grid)));
+  }
 
   render();
 </script>
