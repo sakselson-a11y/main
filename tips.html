@@ -163,13 +163,15 @@
       overflow: hidden;
     }
     #lb-img {
-      height: min(78vh, 92vw * 3 / 2);
-      width: calc(min(78vh, 92vw * 3 / 2) * 2 / 3);
-      aspect-ratio: 2/3;
+      max-width: 90vw;
+      max-height: 80vh;
+      width: auto;
+      height: auto;
       border-radius: 8px;
       object-fit: contain;
       transition: opacity .15s;
       user-select: none;
+      display: block;
     }
 
     #lb-providers {
