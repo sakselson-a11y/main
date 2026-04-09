@@ -22,14 +22,15 @@
     nav a {
       display: inline-block;
       padding: 8px 20px;
-      background: #222;
-      color: #aaa;
+      background: #f5c800;
+      color: #111;
       text-decoration: none;
       border-radius: 6px;
       font-size: .9rem;
-      transition: background .15s, color .15s;
+      font-weight: 600;
+      transition: background .15s;
     }
-    nav a:hover { background: #333; color: #fff; }
+    nav a:hover { background: #ffd700; }
 
     h1 {
       text-align: center;
@@ -105,6 +106,20 @@
       -webkit-line-clamp: 3;
       -webkit-box-orient: vertical;
       overflow: hidden;
+    }
+
+    .card .providers {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 4px;
+      margin-top: -2px;
+    }
+    .card .providers img {
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      object-fit: cover;
     }
 
     .card .no-poster {
@@ -310,11 +325,18 @@
       seasons = tvData.number_of_seasons ?? null;
     }
 
+    const provRes = await fetch(
+      `https://api.themoviedb.org/3/${result.media_type}/${result.id}/watch/providers?api_key=${API_KEY}`
+    );
+    const provData = await provRes.json();
+    const providers = provData.results?.SE?.flatrate ?? [];
+
     return {
       poster:    IMG_BASE + result.poster_path,
       desc:      result.overview || '',
       mediaType: result.media_type,
       seasons,
+      providers,
     };
   }
 
@@ -339,7 +361,11 @@
 
       if (info) {
         const index = items.length;
-        items.push({ title, url: info.poster, desc: info.desc, mediaType: info.mediaType, seasons: info.seasons });
+        items.push({ title, url: info.poster, desc: info.desc, mediaType: info.mediaType, seasons: info.seasons, providers: info.providers });
+
+        const provLogos = info.providers.map(p =>
+          `<img src="https://image.tmdb.org/t/p/w45${p.logo_path}" alt="${p.provider_name}" title="${p.provider_name}">`
+        ).join('');
 
         card.innerHTML = `
           <div class="poster-wrap">
@@ -348,6 +374,7 @@
           </div>
           <span class="title">${title}</span>
           <span class="desc">${info.desc}</span>
+          ${provLogos ? `<div class="providers">${provLogos}</div>` : ''}
         `;
         card.addEventListener('click', () => openLightbox(index));
 
@@ -391,7 +418,10 @@
       lbImg.src = items[current].url;
       lbImg.alt = items[current].title;
       lbImg.onload = () => { lbImg.style.opacity = '1'; };
-      lbCaption.innerHTML = `<strong>${items[current].title}</strong>${items[current].desc ? `<br><span style="font-size:.8rem;color:#aaa;font-weight:normal">${items[current].desc}</span>` : ''}`;
+      const provHtml = items[current].providers?.map(p =>
+        `<img src="https://image.tmdb.org/t/p/w45${p.logo_path}" alt="${p.provider_name}" title="${p.provider_name}" style="width:28px;height:28px;border-radius:5px;object-fit:cover;">`
+      ).join('') ?? '';
+      lbCaption.innerHTML = `<strong>${items[current].title}</strong>${items[current].desc ? `<br><span style="font-size:.8rem;color:#aaa;font-weight:normal">${items[current].desc}</span>` : ''}${provHtml ? `<br><span style="display:inline-flex;gap:5px;margin-top:6px;flex-wrap:wrap;justify-content:center">${provHtml}</span>` : ''}`;
       const item = items[current];
       if (item.mediaType === 'movie') {
         lbRibbon.textContent = 'Film';
