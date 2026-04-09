@@ -310,10 +310,10 @@
   const API_KEY = '0083056b0be76892c6690d2421efddde';
   const IMG_BASE = 'https://image.tmdb.org/t/p/w500';
 
-  const titles = [
-    "Margo's Got Money Troubles",
-    'Hal & Harper',
-    'Love Story: John F. Kennedy Jr. & Carolyn Bessette',
+  const shows = [
+    { title: "Margo's Got Money Troubles" },
+    { title: 'Hal & Harper' },
+    { title: 'Love Story: John F. Kennedy Jr. & Carolyn Bessette', searchType: 'tv', query: 'Love Story Kennedy Bessette' },
   ];
 
   const items = [];
@@ -327,16 +327,20 @@
   const filmstrip   = document.getElementById('filmstrip');
   const counter     = document.getElementById('counter');
 
-  async function fetchInfo(title) {
-    const searchRes = await fetch(
-      `https://api.themoviedb.org/3/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(title)}`
-    );
+  async function fetchInfo(show) {
+    const query = show.query ?? show.title;
+    const endpoint = show.searchType
+      ? `https://api.themoviedb.org/3/search/${show.searchType}?api_key=${API_KEY}&query=${encodeURIComponent(query)}`
+      : `https://api.themoviedb.org/3/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(query)}`;
+    const searchRes = await fetch(endpoint);
     const searchData = await searchRes.json();
     const result = searchData.results?.find(r => r.poster_path);
     if (!result) return null;
 
+    const mediaType = show.searchType ?? result.media_type;
+
     let seasons = null;
-    if (result.media_type === 'tv') {
+    if (mediaType === 'tv') {
       const tvRes = await fetch(
         `https://api.themoviedb.org/3/tv/${result.id}?api_key=${API_KEY}`
       );
@@ -345,15 +349,15 @@
     }
 
     const provRes = await fetch(
-      `https://api.themoviedb.org/3/${result.media_type}/${result.id}/watch/providers?api_key=${API_KEY}`
+      `https://api.themoviedb.org/3/${mediaType}/${result.id}/watch/providers?api_key=${API_KEY}`
     );
     const provData = await provRes.json();
-    const providers = provData.results?.SE?.flatrate ?? [];
+    const providers = [...(provData.results?.SE?.flatrate ?? []), ...(show.extraProviders ?? [])];
 
     return {
-      poster:    IMG_BASE + result.poster_path,
-      desc:      result.overview || '',
-      mediaType: result.media_type,
+      poster: IMG_BASE + result.poster_path,
+      desc:   result.overview || '',
+      mediaType,
       seasons,
       providers,
     };
@@ -373,8 +377,9 @@
   async function render() {
     const grid = document.getElementById('grid');
 
-    await Promise.all(titles.map(async title => {
-      const info = await fetchInfo(title);
+    await Promise.all(shows.map(async show => {
+      const title = show.title ?? show;
+      const info = await fetchInfo(typeof show === 'string' ? { title: show } : show);
       const card = document.createElement('div');
       card.className = 'card';
 
@@ -383,7 +388,7 @@
         items.push({ title, url: info.poster, desc: info.desc, mediaType: info.mediaType, seasons: info.seasons, providers: info.providers });
 
         const provLogos = info.providers.map(p =>
-          `<img src="https://image.tmdb.org/t/p/w45${p.logo_path}" alt="${p.provider_name}" title="${p.provider_name}">`
+          `<img src="${p.logoUrl ?? `https://image.tmdb.org/t/p/w45${p.logo_path}`}" alt="${p.provider_name}" title="${p.provider_name}">`
         ).join('');
 
         card.innerHTML = `
@@ -439,7 +444,7 @@
       lbImg.onload = () => { lbImg.style.opacity = '1'; };
       lbCaption.innerHTML = `<strong>${items[current].title}</strong>${items[current].desc ? `<br><span style="font-size:.8rem;color:#aaa;font-weight:normal">${items[current].desc}</span>` : ''}`;
       lbProviders.innerHTML = (items[current].providers ?? []).map(p =>
-        `<img src="https://image.tmdb.org/t/p/w45${p.logo_path}" alt="${p.provider_name}" title="${p.provider_name}">`
+        `<img src="${p.logoUrl ?? `https://image.tmdb.org/t/p/w45${p.logo_path}`}" alt="${p.provider_name}" title="${p.provider_name}">`
       ).join('');
       const item = items[current];
       if (item.mediaType === 'movie') {
