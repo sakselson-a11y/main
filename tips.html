@@ -313,7 +313,7 @@
   const shows = [
     { title: "Margo's Got Money Troubles" },
     { title: 'Hal & Harper' },
-    { title: 'Love Story: John F. Kennedy Jr. & Carolyn Bessette', searchType: 'tv', query: 'Love Story Kennedy Bessette' },
+    { title: 'Love Story: John F. Kennedy Jr. & Carolyn Bessette', tmdbId: 131142, searchType: 'tv' },
   ];
 
   const items = [];
@@ -328,19 +328,31 @@
   const counter     = document.getElementById('counter');
 
   async function fetchInfo(show) {
-    const query = show.query ?? show.title;
-    const endpoint = show.searchType
-      ? `https://api.themoviedb.org/3/search/${show.searchType}?api_key=${API_KEY}&query=${encodeURIComponent(query)}`
-      : `https://api.themoviedb.org/3/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(query)}`;
-    const searchRes = await fetch(endpoint);
-    const searchData = await searchRes.json();
-    const result = searchData.results?.find(r => r.poster_path);
-    if (!result) return null;
+    const mediaType = show.searchType ?? 'multi';
+    let result;
 
-    const mediaType = show.searchType ?? result.media_type;
+    if (show.tmdbId) {
+      const detailRes = await fetch(
+        `https://api.themoviedb.org/3/${mediaType}/${show.tmdbId}?api_key=${API_KEY}`
+      );
+      result = await detailRes.json();
+      result.id = show.tmdbId;
+      if (!result.poster_path) return null;
+    } else {
+      const query = show.query ?? show.title;
+      const endpoint = show.searchType
+        ? `https://api.themoviedb.org/3/search/${show.searchType}?api_key=${API_KEY}&query=${encodeURIComponent(query)}`
+        : `https://api.themoviedb.org/3/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(query)}`;
+      const searchRes = await fetch(endpoint);
+      const searchData = await searchRes.json();
+      result = searchData.results?.find(r => r.poster_path);
+      if (!result) return null;
+    }
 
-    let seasons = null;
-    if (mediaType === 'tv') {
+    const resolvedType = show.tmdbId ? mediaType : (show.searchType ?? result.media_type);
+
+    let seasons = result.number_of_seasons ?? null;
+    if (resolvedType === 'tv' && seasons === null) {
       const tvRes = await fetch(
         `https://api.themoviedb.org/3/tv/${result.id}?api_key=${API_KEY}`
       );
@@ -349,7 +361,7 @@
     }
 
     const provRes = await fetch(
-      `https://api.themoviedb.org/3/${mediaType}/${result.id}/watch/providers?api_key=${API_KEY}`
+      `https://api.themoviedb.org/3/${resolvedType}/${result.id}/watch/providers?api_key=${API_KEY}`
     );
     const provData = await provRes.json();
     const providers = [...(provData.results?.SE?.flatrate ?? []), ...(show.extraProviders ?? [])];
@@ -357,7 +369,7 @@
     return {
       poster: IMG_BASE + result.poster_path,
       desc:   result.overview || '',
-      mediaType,
+      mediaType: resolvedType,
       seasons,
       providers,
     };
