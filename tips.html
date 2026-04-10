@@ -544,25 +544,38 @@
   const WATCHED_SET_KEY = 'akselson-tips-watched-set';
   function loadWatchedSet() { try { return new Set(JSON.parse(localStorage.getItem(WATCHED_SET_KEY)) || []); } catch { return new Set(); } }
 
-  function toggleWatched(title, btn) {
+  function toggleWatched(title, btn, card) {
     const ws = loadWatchedSet();
     if (ws.has(title)) {
+      // Unmark — remove from watched page
       ws.delete(title);
-      // Remove from watched page
       const wSaved = JSON.parse(localStorage.getItem('akselson-watched-added') || '[]');
       localStorage.setItem('akselson-watched-added', JSON.stringify(wSaved.filter(t => t !== title)));
+      localStorage.setItem(WATCHED_SET_KEY, JSON.stringify([...ws]));
+      btn.classList.remove('watched');
+      btn.title = 'Markera som sedd';
     } else {
+      // Mark as watched — move to watched page, remove from tips
       ws.add(title);
-      // Also un-remove from watched page in case it was removed there
+      localStorage.setItem(WATCHED_SET_KEY, JSON.stringify([...ws]));
+
+      // Remove from tips removed list in case it was there, then add to tips removed
+      addToRemoved(title);
+      saveTitles(loadSaved().filter(t => t !== title));
+
+      // Add to watched page (un-remove it there first)
       const wRemoved = JSON.parse(localStorage.getItem('akselson-watched-removed') || '[]');
       localStorage.setItem('akselson-watched-removed', JSON.stringify(wRemoved.filter(t => t !== title)));
-      // Add to watched page saved list
       const wSaved = JSON.parse(localStorage.getItem('akselson-watched-added') || '[]');
       if (!wSaved.includes(title)) { wSaved.push(title); localStorage.setItem('akselson-watched-added', JSON.stringify(wSaved)); }
+
+      // Remove card from tips
+      if (lightbox.classList.contains('open')) closeLightbox();
+      const itemObj = items.find(it => it.title === title);
+      if (itemObj) { const i = items.indexOf(itemObj); if (i !== -1) items.splice(i, 1); }
+      card.remove();
+      rebuildFilmstrip();
     }
-    localStorage.setItem(WATCHED_SET_KEY, JSON.stringify([...ws]));
-    btn.classList.toggle('watched', ws.has(title));
-    btn.title = ws.has(title) ? 'Sedd ✓ — klicka för att ångra' : 'Markera som sedd';
   }
 
   const shows = [
@@ -675,7 +688,7 @@
       card.addEventListener('click', () => { const i = items.indexOf(itemObj); if (i !== -1) openLightbox(i); });
       card.querySelector('.watch-btn').addEventListener('click', e => {
         e.stopPropagation();
-        toggleWatched(title, e.currentTarget);
+        toggleWatched(title, e.currentTarget, card);
       });
       card.querySelector('.remove-btn').addEventListener('click', e => {
         e.stopPropagation();
