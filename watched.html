@@ -59,10 +59,16 @@
     }
     .logo-word span { color: #f5c800; }
 
-    header nav { display: flex; gap: 6px; }
-    header nav a {
+    #page-nav {
+      display: flex;
+      gap: 4px;
+      padding: 10px 24px;
+      background: #161616;
+      border-bottom: 1px solid #222;
+    }
+    #page-nav a {
       display: inline-block;
-      padding: 7px 16px;
+      padding: 7px 18px;
       background: transparent;
       color: #aaa;
       text-decoration: none;
@@ -70,10 +76,10 @@
       font-size: .85rem;
       font-weight: 600;
       transition: background .15s, color .15s;
-      border: 1px solid #333;
+      border: 1px solid transparent;
     }
-    header nav a:hover { background: #222; color: #fff; }
-    header nav a.active { background: #f5c800; color: #111; border-color: #f5c800; }
+    #page-nav a:hover { background: #222; color: #fff; }
+    #page-nav a.active { background: #f5c800; color: #111; }
 
     /* ── Page title ── */
     .page-hero {
@@ -447,11 +453,11 @@
     <div class="logo-mark">A</div>
     <div class="logo-word"><span>A</span>KSELSON</div>
   </a>
-  <nav>
-    <a href="watched.html" class="active">Rekommendationer</a>
-    <a href="tips.html">Tips</a>
-  </nav>
 </header>
+<nav id="page-nav">
+  <a href="watched.html" class="active">Rekommendationer</a>
+  <a href="tips.html">Tips</a>
+</nav>
 
 <div class="page-hero">
   <h1>Filmer och serier jag rekommenderar</h1>
