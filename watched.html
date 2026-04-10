@@ -59,18 +59,21 @@
     }
     .logo-word span { color: #f5c800; }
 
+    header nav { display: flex; gap: 6px; }
     header nav a {
       display: inline-block;
       padding: 7px 16px;
-      background: #f5c800;
-      color: #111;
+      background: transparent;
+      color: #aaa;
       text-decoration: none;
       border-radius: 6px;
       font-size: .85rem;
       font-weight: 600;
-      transition: background .15s;
+      transition: background .15s, color .15s;
+      border: 1px solid #333;
     }
-    header nav a:hover { background: #ffd700; }
+    header nav a:hover { background: #222; color: #fff; }
+    header nav a.active { background: #f5c800; color: #111; border-color: #f5c800; }
 
     /* ── Page title ── */
     .page-hero {
@@ -444,12 +447,16 @@
     <div class="logo-mark">A</div>
     <div class="logo-word"><span>A</span>KSELSON</div>
   </a>
-  <nav><a href="tips.html">Tips &rarr;</a></nav>
+  <nav>
+    <a href="watched.html" class="active">Rekommendationer</a>
+    <a href="tips.html">Tips</a>
+  </nav>
 </header>
 
 <div class="page-hero">
   <h1>Filmer och serier jag rekommenderar</h1>
   <div class="underline"></div>
+  <p id="item-count" style="margin-top:12px; color:#666; font-size:.85rem;"></p>
 </div>
 
 <div class="content">
@@ -627,6 +634,7 @@
         rebuildFilmstrip();
         addToRemoved(title);
         saveTitles(loadSaved().filter(t => t !== title));
+        updateCount();
       });
 
       const ft = document.createElement('div');
@@ -768,6 +776,7 @@
     msg.textContent = `"${title}" lades till!`;
     setTimeout(() => { msg.textContent = ''; }, 3000);
     btn.disabled = false;
+    updateCount();
   }
 
   document.getElementById('add-btn').addEventListener('click', () => {
@@ -781,12 +790,19 @@
     }
   });
 
+  function updateCount() {
+    const el = document.getElementById('item-count');
+    const n = items.length;
+    el.textContent = n === 1 ? '1 titel' : `${n} titlar`;
+  }
+
   async function render() {
     await fetchGenres();
     const grid = document.getElementById('grid');
     const removed = loadRemoved();
     const allShows = [...shows, ...loadSaved().map(t => ({ title: t }))].filter(s => !removed.has(s.title ?? s));
     await Promise.all(allShows.map(show => renderShow(show, grid)));
+    updateCount();
   }
 
   render();
