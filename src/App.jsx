@@ -1,10 +1,12 @@
 import { useWeather } from './useWeather'
+import { useWaterTemp } from './useWaterTemp'
 import WeatherCard from './components/WeatherCard'
 import WhyValencia from './components/WhyValencia'
 import styles from './App.module.css'
 
 export default function App() {
   const { data, loading, error } = useWeather()
+  const waterTemp = useWaterTemp()
 
   const stockholm = data?.find(d => d.city.id === 'stockholm')
   const valencia = data?.find(d => d.city.id === 'valencia')
@@ -37,7 +39,7 @@ export default function App() {
                 <WeatherCard key={item.city.id} data={item} />
               ))}
             </div>
-            <WhyValencia stockholm={stockholm} valencia={valencia} />
+            <WhyValencia stockholm={stockholm} valencia={valencia} waterTemp={waterTemp} />
           </>
         )}
       </main>
