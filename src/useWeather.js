@@ -89,6 +89,14 @@ function parseWeather(city, raw) {
   // Format sunrise/sunset from ISO datetime to HH:MM
   const fmt = (iso) => iso ? iso.slice(11, 16) : '–'
 
+  // Daylight duration in minutes
+  const toMinutes = (iso) => {
+    if (!iso) return 0
+    const [h, m] = iso.slice(11, 16).split(':').map(Number)
+    return h * 60 + m
+  }
+  const daylightMinutes = toMinutes(d.sunset[0]) - toMinutes(d.sunrise[0])
+
   return {
     city,
     temperature: Math.round(c.temperature_2m),
@@ -100,5 +108,6 @@ function parseWeather(city, raw) {
     avgTemp: Math.round(avgTemp * 10) / 10,
     sunrise: fmt(d.sunrise[0]),
     sunset: fmt(d.sunset[0]),
+    daylightMinutes,
   }
 }
