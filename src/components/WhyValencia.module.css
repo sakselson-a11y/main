@@ -27,10 +27,9 @@
 }
 
 .row {
-  display: grid;
-  grid-template-columns: 2rem 1fr auto auto;
+  display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: space-between;
   padding: 14px 20px;
   background: #fff;
   border-bottom: 1px solid #fef3c7;
@@ -40,9 +39,21 @@
   border-bottom: none;
 }
 
+.rowLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rowRight {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
 .rowIcon {
   font-size: 1.3rem;
-  text-align: center;
+  line-height: 1;
 }
 
 .rowLabel {
@@ -55,15 +66,12 @@
   font-size: 1.1rem;
   font-weight: 800;
   color: #d97706;
-  text-align: right;
 }
 
 .rowDetail {
   font-size: 0.8rem;
   color: #6b7280;
   font-weight: 500;
-  min-width: 80px;
-  text-align: right;
 }
 
 .fact {
@@ -82,11 +90,6 @@
 @media (max-width: 600px) {
   .section {
     padding: 28px 24px;
-  }
-
-  .row {
-    grid-template-columns: 2rem 1fr auto;
-    gap: 8px;
   }
 
   .rowDetail {

@@ -47,10 +47,14 @@ export default function WhyValencia({ stockholm, valencia }) {
 function Row({ icon, label, value, detail }) {
   return (
     <div className={styles.row}>
-      <span className={styles.rowIcon}>{icon}</span>
-      <span className={styles.rowLabel}>{label}</span>
-      <span className={styles.rowValue}>{value}</span>
-      <span className={styles.rowDetail}>{detail}</span>
+      <div className={styles.rowLeft}>
+        <span className={styles.rowIcon}>{icon}</span>
+        <span className={styles.rowLabel}>{label}</span>
+      </div>
+      <div className={styles.rowRight}>
+        <span className={styles.rowValue}>{value}</span>
+        <span className={styles.rowDetail}>{detail}</span>
+      </div>
     </div>
   )
 }
