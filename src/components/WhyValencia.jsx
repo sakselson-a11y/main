@@ -54,7 +54,7 @@ export default function WhyValencia({ stockholm, valencia, waterTemp }) {
 
       <p className={styles.fact}>
         {sunshine && sunDiff != null
-          ? <>Kom ihåg att Valencia har haft <strong>{sunDiff.toLocaleString('sv-SE')} fler soltimmar</strong> än Stockholm under {sunshine.year}</>
+          ? <>Kom ihåg att Valencia har haft <strong>{sunDiff.toLocaleString('sv-SE')} fler soltimmar</strong> hittills än Stockholm under {sunshine.year}</>
           : <>Hämtar soltimmar för {new Date().getFullYear()}…</>
         }
       </p>
