@@ -3,6 +3,7 @@ import { useWaterTemp } from './useWaterTemp'
 import WeatherCard from './components/WeatherCard'
 import WhyValencia from './components/WhyValencia'
 import PriceTable from './components/PriceTable'
+import FlightPage from './components/FlightPage'
 import Carousel from './components/Carousel'
 import styles from './App.module.css'
 
@@ -18,6 +19,7 @@ export default function App() {
     <WeatherCard data={valencia} />,
     <WhyValencia stockholm={stockholm} valencia={valencia} waterTemp={waterTemp} />,
     <PriceTable />,
+    <FlightPage />,
   ] : []
 
   return (

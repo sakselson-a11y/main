@@ -1,13 +1,22 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import styles from './Carousel.module.css'
 
-const LABELS = ['Stockholm', 'Valencia', 'Jämförelse', 'Priser']
+const LABELS = ['Stockholm', 'Valencia', 'Jämförelse', 'Priser', 'Flyg']
 
 export default function Carousel({ slides }) {
   const [current, setCurrent] = useState(0)
   const touchX = useRef(null)
 
   function goTo(i) { setCurrent(Math.max(0, Math.min(slides.length - 1, i))) }
+
+  useEffect(() => {
+    function onKey(e) {
+      if (e.key === 'ArrowRight') goTo(current + 1)
+      if (e.key === 'ArrowLeft')  goTo(current - 1)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [current])
 
   function onTouchStart(e) { touchX.current = e.touches[0].clientX }
   function onTouchEnd(e) {
