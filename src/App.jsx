@@ -15,7 +15,7 @@ export default function App() {
   return (
     <div className={styles.layout}>
       <header className={styles.header}>
-        <h1 className={styles.title}>Why Valencia?</h1>
+        <h1 className={styles.title}>¿Por qué Valencia?</h1>
         <p className={styles.subtitle}>Aktuella jämförelser · Uppdateras automatiskt</p>
       </header>
 
