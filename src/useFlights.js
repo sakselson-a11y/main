@@ -15,23 +15,31 @@ const SCHEDULE = {
   valencia: { summer: 135, winter: 52  },
 }
 
-// Filter out domestic flights based on destination ICAO prefix
-// ES = Sweden, LE = Spain mainland + Balearics, GC = Canary Islands
-function isInternational(flight, departureIcao) {
-  const dest = flight.estArrivalAirport
-  if (!dest) return true  // unknown destination – keep
-  if (departureIcao.startsWith('ES')) return !dest.startsWith('ES')
-  if (departureIcao.startsWith('LE')) return !dest.startsWith('LE') && !dest.startsWith('GC')
-  return true
-}
-
 function isSummerSchedule() {
-  const m = new Date().getMonth() + 1  // 1-12
+  const m = new Date().getMonth() + 1
   return m >= 4 && m <= 10
 }
 
 function scheduledCount(id) {
   return isSummerSchedule() ? SCHEDULE[id].summer : SCHEDULE[id].winter
+}
+
+function buildScheduleData() {
+  const obj = { anyLive: false }
+  AIRPORTS.forEach(({ id, name }) => {
+    obj[id] = { id, name, count: scheduledCount(id), live: false, dateLabel: null }
+  })
+  return obj
+}
+
+// Filter out domestic flights based on destination ICAO prefix
+// ES = Sweden, LE = Spain mainland + Balearics, GC = Canary Islands
+function isInternational(flight, departureIcao) {
+  const dest = flight.estArrivalAirport
+  if (!dest) return true
+  if (departureIcao.startsWith('ES')) return !dest.startsWith('ES')
+  if (departureIcao.startsWith('LE')) return !dest.startsWith('LE') && !dest.startsWith('GC')
+  return true
 }
 
 function twoDaysAgo() {
@@ -44,64 +52,71 @@ function twoDaysAgo() {
   return { begin, end, label }
 }
 
+const CACHE_KEY = 'flightsCache_v4'
+
+function readCache() {
+  try {
+    const c = JSON.parse(localStorage.getItem(CACHE_KEY))
+    const today = new Date().toISOString().slice(0, 10)
+    if (c?.date === today) return c.data
+  } catch (_) {}
+  return null
+}
+
 export function useFlights() {
-  const [data,    setData]    = useState(null)
-  const [loading, setLoading] = useState(true)
+  // Initialise synchronously from cache or schedule – no spinner needed
+  const [data, setData] = useState(() => readCache() ?? buildScheduleData())
 
   useEffect(() => {
     let cancelled = false
 
-    async function load() {
-      const CACHE_KEY = 'flightsCache_v3'
-      const today     = new Date().toISOString().slice(0, 10)
+    // If we already have cached live data for today, nothing more to do
+    const cached = readCache()
+    if (cached?.anyLive) return
 
-      // Serve daily cache (refreshes at midnight – "ändras på natten")
+    // Try OpenSky in the background; silently keep schedule data on any failure
+    async function tryLive() {
       try {
-        const c = JSON.parse(localStorage.getItem(CACHE_KEY))
-        if (c?.date === today) {
-          if (!cancelled) { setData(c.data); setLoading(false) }
-          return
-        }
-      } catch (_) {}
+        const { begin, end, label } = twoDaysAgo()
 
-      const { begin, end, label } = twoDaysAgo()
+        const results = await Promise.allSettled(
+          AIRPORTS.map(async ({ id, icao, name }) => {
+            const url =
+              `https://opensky-network.org/api/flights/departure` +
+              `?airport=${icao}&begin=${begin}&end=${end}`
+            const res = await fetch(url, { signal: AbortSignal.timeout(8000) })
+            if (!res.ok) throw new Error(`HTTP ${res.status}`)
+            const json = await res.json()
+            if (!Array.isArray(json) || json.length < 30) throw new Error('implausible')
+            const intl = json.filter(f => isInternational(f, icao))
+            return { id, name, count: intl.length, live: true, dateLabel: label }
+          })
+        )
 
-      // Try OpenSky historical API (requires data to be ≥48 h old)
-      const results = await Promise.allSettled(
-        AIRPORTS.map(async ({ id, icao, name }) => {
-          const url = `https://opensky-network.org/api/flights/departure?airport=${icao}&begin=${begin}&end=${end}`
-          const res = await fetch(url, { signal: AbortSignal.timeout(8000) })
-          if (!res.ok) throw new Error(`HTTP ${res.status}`)
-          const json = await res.json()
-          if (!Array.isArray(json) || json.length < 30) throw new Error('implausible')
-          const intl = json.filter(f => isInternational(f, icao))
-          return { id, name, count: intl.length, live: true, dateLabel: label }
+        if (cancelled) return
+
+        const anyLive = results.some(r => r.status === 'fulfilled')
+        if (!anyLive) return  // all failed – keep schedule data already shown
+
+        const obj = { anyLive: true }
+        AIRPORTS.forEach(({ id, name }, i) => {
+          const r = results[i]
+          obj[id] = r.status === 'fulfilled'
+            ? r.value
+            : { id, name, count: scheduledCount(id), live: false, dateLabel: null }
         })
-      )
 
-      if (cancelled) return
-
-      const obj = {}
-      let anyLive = false
-      AIRPORTS.forEach(({ id, name }, i) => {
-        const r = results[i]
-        if (r.status === 'fulfilled') {
-          obj[id]  = r.value
-          anyLive  = true
-        } else {
-          obj[id] = { id, name, count: scheduledCount(id), live: false, dateLabel: null }
-        }
-      })
-      obj.anyLive = anyLive
-
-      try { localStorage.setItem(CACHE_KEY, JSON.stringify({ date: today, data: obj })) } catch (_) {}
-      setData(obj)
-      setLoading(false)
+        const today = new Date().toISOString().slice(0, 10)
+        try { localStorage.setItem(CACHE_KEY, JSON.stringify({ date: today, data: obj })) } catch (_) {}
+        setData(obj)
+      } catch (_) {
+        // Network error or anything else – schedule data stays on screen
+      }
     }
 
-    load()
+    tryLive()
     return () => { cancelled = true }
   }, [])
 
-  return { data, loading }
+  return { data }
 }

@@ -2,7 +2,7 @@ import { useFlights } from '../useFlights'
 import styles from './FlightPage.module.css'
 
 export default function FlightPage() {
-  const { data, loading } = useFlights()
+  const { data } = useFlights()
 
   const arlanda  = data?.arlanda
   const valencia = data?.valencia
@@ -12,11 +12,9 @@ export default function FlightPage() {
     ? arlanda.count - valencia.count
     : null
 
-  const subLabel = loading
-    ? 'Hämtar…'
-    : isLive
-      ? `Internationella avgångar ${arlanda?.dateLabel ?? ''} (ADS-B)`
-      : 'Planerade internationella avgångar per dygn'
+  const subLabel = isLive
+    ? `Faktiska internationella avgångar ${arlanda?.dateLabel ?? ''} (ADS-B)`
+    : 'Planerade internationella avgångar per dygn'
 
   return (
     <section className={styles.section}>
@@ -25,40 +23,34 @@ export default function FlightPage() {
         <p className={styles.sub}>{subLabel}</p>
       </div>
 
-      {loading && <p className={styles.loading}>Hämtar flygdata…</p>}
+      <div className={styles.cards}>
+        <AirportCard airport={arlanda} icon="🇸🇪" />
+        <AirportCard airport={valencia} icon="🇪🇸" />
+      </div>
 
-      {data && (
-        <>
-          <div className={styles.cards}>
-            <AirportCard airport={arlanda} icon="🇸🇪" />
-            <AirportCard airport={valencia} icon="🇪🇸" />
-          </div>
-
-          {diff != null && (
-            <div className={styles.verdict}>
-              {isLive
-                ? diff > 0
-                  ? <>Arlanda hade <strong>{diff} fler avgångar</strong> än Valencia den dagen</>
-                  : diff < 0
-                  ? <>Valencia hade <strong>{Math.abs(diff)} fler avgångar</strong> än Arlanda den dagen</>
-                  : <>Lika många avgångar den dagen</>
-                : diff > 0
-                  ? <>Arlanda har <strong>{diff} fler planerade avgångar</strong> per dag än Valencia</>
-                  : diff < 0
-                  ? <>Valencia har <strong>{Math.abs(diff)} fler planerade avgångar</strong> per dag än Arlanda</>
-                  : <>Lika många planerade avgångar per dag</>
-              }
-            </div>
-          )}
-
-          <p className={styles.note}>
-            {isLive
-              ? <>Källa: <a href="https://opensky-network.org" target="_blank" rel="noopener noreferrer">OpenSky Network</a> · Historisk ADS-B-data, publiceras nattligen</>
-              : <>Källa: Swedavia &amp; AENA årsstatistik 2023 · Varierar per säsong</>
-            }
-          </p>
-        </>
+      {diff != null && (
+        <div className={styles.verdict}>
+          {isLive
+            ? diff > 0
+              ? <>Arlanda hade <strong>{diff} fler avgångar</strong> än Valencia den dagen</>
+              : diff < 0
+              ? <>Valencia hade <strong>{Math.abs(diff)} fler avgångar</strong> än Arlanda den dagen</>
+              : <>Lika många avgångar den dagen</>
+            : diff > 0
+            ? <>Arlanda har <strong>{diff} fler planerade avgångar</strong> per dag än Valencia</>
+            : diff < 0
+            ? <>Valencia har <strong>{Math.abs(diff)} fler planerade avgångar</strong> per dag än Arlanda</>
+            : <>Lika många planerade avgångar per dag</>
+          }
+        </div>
       )}
+
+      <p className={styles.note}>
+        {isLive
+          ? <>Källa: <a href="https://opensky-network.org" target="_blank" rel="noopener noreferrer">OpenSky Network</a> · Historisk ADS-B-data, publiceras nattligen</>
+          : <>Källa: Swedavia &amp; AENA årsstatistik 2023 · Schemasnitt, varierar per säsong</>
+        }
+      </p>
     </section>
   )
 }
