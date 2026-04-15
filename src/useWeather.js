@@ -29,6 +29,7 @@ function buildUrl({ lat, lon, timezone }) {
       'weather_code',
       'wind_speed_10m',
       'wind_direction_10m',
+      'uv_index',
     ].join(','),
     daily: [
       'temperature_2m_max',
@@ -103,6 +104,7 @@ function parseWeather(city, raw) {
     weatherCode: c.weather_code,
     windSpeed: Math.round(c.wind_speed_10m),
     windDirection: Math.round(c.wind_direction_10m),
+    uvIndex: Math.round(c.uv_index ?? 0),
     maxTemp: Math.round(maxTemp),
     minTemp: Math.round(minTemp),
     avgTemp: Math.round(avgTemp * 10) / 10,

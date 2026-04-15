@@ -48,7 +48,7 @@ export default function PriceTable() {
       </div>
 
       <p className={styles.source}>
-        Ungefärliga priser baserade på{' '}
+        Priser från{' '}
         <a href="https://www.numbeo.com/cost-of-living/compare_cities.jsp?country1=Spain&city1=Valencia&country2=Sweden&city2=Stockholm"
            target="_blank" rel="noopener noreferrer">Numbeo</a>{' '}
         (EUR→SEK ~11,5). Uppdateras manuellt.

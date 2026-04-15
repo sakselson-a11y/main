@@ -107,6 +107,19 @@
   font-weight: 800;
 }
 
+.taxFact {
+  background: #92400e;
+  color: #fff;
+  border-radius: 14px;
+  padding: 16px 24px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.taxFact strong {
+  font-weight: 800;
+}
+
 @media (max-width: 600px) {
   .section {
     padding: 28px 24px;

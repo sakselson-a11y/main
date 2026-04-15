@@ -14,9 +14,11 @@ export default function WhyValencia({ stockholm, valencia, waterTemp }) {
 
   const tempDiff = valencia.temperature - stockholm.temperature
   const windDiff = valencia.windSpeed - stockholm.windSpeed
+  const uvDiff   = valencia.uvIndex   - stockholm.uvIndex
 
-  const temp  = fmt(tempDiff, '°', 'varmare', 'kallare')
-  const wind  = fmt(windDiff, 'km/h', 'mer vind', 'lugnare vind')
+  const temp  = fmt(tempDiff, '°',   'varmare',     'kallare')
+  const wind  = fmt(windDiff, 'km/h','mer vind',    'lugnare vind')
+  const uv    = fmt(uvDiff,   'UVI', 'starkare UV', 'svagare UV')
 
   const valWater = waterTemp?.valencia
   const sthWater = waterTemp?.stockholm
@@ -40,7 +42,8 @@ export default function WhyValencia({ stockholm, valencia, waterTemp }) {
 
       <div className={styles.rows}>
         <Row icon="🌡️" label="Temperatur" value={temp.value} detail={temp.label} />
-        <Row icon="💨" label="Vind" value={wind.value} detail={wind.label} />
+        <Row icon="🔆" label="UV-index"   value={uv.value}   detail={uv.label}   />
+        <Row icon="💨" label="Vind"       value={wind.value} detail={wind.label} />
         <Row
           icon="🌊"
           label="Badtemperatur"
@@ -58,6 +61,13 @@ export default function WhyValencia({ stockholm, valencia, waterTemp }) {
           : <>Hämtar soltimmar för {new Date().getFullYear()}…</>
         }
       </p>
+
+      <div className={styles.taxFact}>
+        Inkomstskatten i Valencia är ca <strong>20 %</strong> jämfört med ca{' '}
+        <strong>32 %</strong> i Stockholm – ungefär 12 procentenheter lägre.
+        På en månadslön om 45 000 kr sparar du ca{' '}
+        <strong>5 400 kr i månaden</strong> i skatt.
+      </div>
     </section>
   )
 }

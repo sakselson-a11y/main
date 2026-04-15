@@ -3,9 +3,17 @@ import styles from './WeatherCard.module.css'
 
 export default function WeatherCard({ data }) {
   const { city, temperature, weatherCode, windSpeed, windDirection: windDeg,
-          avgTemp, maxTemp, minTemp, sunrise, sunset } = data
+          avgTemp, maxTemp, minTemp, sunrise, sunset, uvIndex } = data
   const { label, icon } = getWeatherInfo(weatherCode)
   const windDir = windDirection(windDeg)
+
+  function uvLabel(uv) {
+    if (uv <= 2) return 'Låg'
+    if (uv <= 5) return 'Måttlig'
+    if (uv <= 7) return 'Hög'
+    if (uv <= 10) return 'Mycket hög'
+    return 'Extrem'
+  }
 
   return (
     <article className={`${styles.card} ${styles[city.id]}`}>
@@ -30,6 +38,7 @@ export default function WeatherCard({ data }) {
         <Stat label="Vind" value={`${windSpeed} km/h ${windDir}`} icon="💨" />
         <Stat label="Soluppgång" value={sunrise} icon="🌅" />
         <Stat label="Solnedgång" value={sunset} icon="🌇" />
+        <Stat label="UV-index" value={`${uvIndex} – ${uvLabel(uvIndex)}`} icon="🔆" />
       </div>
     </article>
   )
