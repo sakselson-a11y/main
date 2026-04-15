@@ -15,8 +15,8 @@ export default function FlightPage() {
   const subLabel = loading
     ? 'Hämtar…'
     : isLive
-      ? `Faktiska avgångar ${arlanda?.dateLabel ?? ''} (ADS-B)`
-      : 'Planerade reguljära avgångar per dygn'
+      ? `Internationella avgångar ${arlanda?.dateLabel ?? ''} (ADS-B)`
+      : 'Planerade internationella avgångar per dygn'
 
   return (
     <section className={styles.section}>

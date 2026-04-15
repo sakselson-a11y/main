@@ -5,13 +5,24 @@ const AIRPORTS = [
   { id: 'valencia', icao: 'LEVC', name: 'Valencia' },
 ]
 
-// Scheduled daily departures by IATA traffic season
+// International-only scheduled daily departures by IATA traffic season
 // Source: Swedavia årsredovisning 2023, AENA estadísticas 2023
+// (Total minus estimated domestic: ~50/day ARN, ~25/day VLC)
 // Summer schedule: late March – late October
 // Winter schedule: late October – late March
 const SCHEDULE = {
-  arlanda:  { summer: 280, winter: 185 },
-  valencia: { summer: 160, winter: 70  },
+  arlanda:  { summer: 230, winter: 145 },
+  valencia: { summer: 135, winter: 52  },
+}
+
+// Filter out domestic flights based on destination ICAO prefix
+// ES = Sweden, LE = Spain mainland + Balearics, GC = Canary Islands
+function isInternational(flight, departureIcao) {
+  const dest = flight.estArrivalAirport
+  if (!dest) return true  // unknown destination – keep
+  if (departureIcao.startsWith('ES')) return !dest.startsWith('ES')
+  if (departureIcao.startsWith('LE')) return !dest.startsWith('LE') && !dest.startsWith('GC')
+  return true
 }
 
 function isSummerSchedule() {
@@ -62,9 +73,9 @@ export function useFlights() {
           const res = await fetch(url, { signal: AbortSignal.timeout(8000) })
           if (!res.ok) throw new Error(`HTTP ${res.status}`)
           const json = await res.json()
-          // Sanity-check: a major airport should have at least 30 flights
           if (!Array.isArray(json) || json.length < 30) throw new Error('implausible')
-          return { id, name, count: json.length, live: true, dateLabel: label }
+          const intl = json.filter(f => isInternational(f, icao))
+          return { id, name, count: intl.length, live: true, dateLabel: label }
         })
       )
 
