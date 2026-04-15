@@ -2,6 +2,7 @@ import { useWeather } from './useWeather'
 import { useWaterTemp } from './useWaterTemp'
 import WeatherCard from './components/WeatherCard'
 import WhyValencia from './components/WhyValencia'
+import PriceTable from './components/PriceTable'
 import styles from './App.module.css'
 
 export default function App() {
@@ -14,7 +15,7 @@ export default function App() {
   return (
     <div className={styles.layout}>
       <header className={styles.header}>
-        <h1 className={styles.title}>Väderappen</h1>
+        <h1 className={styles.title}>Why Valencia?</h1>
         <p className={styles.subtitle}>Aktuellt väder · Uppdateras automatiskt</p>
       </header>
 
@@ -40,6 +41,7 @@ export default function App() {
               ))}
             </div>
             <WhyValencia stockholm={stockholm} valencia={valencia} waterTemp={waterTemp} />
+            <PriceTable />
           </>
         )}
       </main>
