@@ -1,4 +1,5 @@
 import { useSunshineHours } from '../useSunshineHours'
+import { useRainyDays }    from '../useRainyDays'
 import styles from './WhyValencia.module.css'
 
 function fmt(diff, unit, posLabel, negLabel) {
@@ -11,6 +12,7 @@ export default function WhyValencia({ stockholm, valencia, waterTemp }) {
   if (!stockholm || !valencia) return null
 
   const sunshine = useSunshineHours()
+  const rain     = useRainyDays()
 
   const tempDiff = valencia.temperature - stockholm.temperature
   const windDiff = valencia.windSpeed - stockholm.windSpeed
@@ -59,6 +61,13 @@ export default function WhyValencia({ stockholm, valencia, waterTemp }) {
         {sunshine && sunDiff != null
           ? <>Kom ihåg att Valencia har haft <strong>{sunDiff.toLocaleString('sv-SE')} fler soltimmar</strong> hittills än Stockholm under {sunshine.year}</>
           : <>Hämtar soltimmar för {new Date().getFullYear()}…</>
+        }
+      </p>
+
+      <p className={styles.rainFact}>
+        {rain
+          ? <>Stockholm har haft <strong>{rain.stockholm} regniga dagar</strong> hittills under {rain.year} – Valencia bara <strong>{rain.valencia}</strong></>
+          : <>Hämtar nederbördsdata för {new Date().getFullYear()}…</>
         }
       </p>
 
