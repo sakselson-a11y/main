@@ -1,3 +1,4 @@
+import { useSunshineHours } from '../useSunshineHours'
 import styles from './WhyValencia.module.css'
 
 function fmt(diff, unit, posLabel, negLabel) {
@@ -9,11 +10,13 @@ function fmt(diff, unit, posLabel, negLabel) {
 export default function WhyValencia({ stockholm, valencia, waterTemp }) {
   if (!stockholm || !valencia) return null
 
+  const sunshine = useSunshineHours()
+
   const tempDiff = valencia.temperature - stockholm.temperature
   const windDiff = valencia.windSpeed - stockholm.windSpeed
 
-  const temp = fmt(tempDiff, '°', 'varmare', 'kallare')
-  const wind = fmt(windDiff, 'km/h', 'mer vind', 'lugnare vind')
+  const temp  = fmt(tempDiff, '°', 'varmare', 'kallare')
+  const wind  = fmt(windDiff, 'km/h', 'mer vind', 'lugnare vind')
 
   const valWater = waterTemp?.valencia
   const sthWater = waterTemp?.stockholm
@@ -21,6 +24,8 @@ export default function WhyValencia({ stockholm, valencia, waterTemp }) {
   const water = waterDiff != null
     ? fmt(waterDiff, '°', 'varmare vatten', 'kallare vatten')
     : null
+
+  const sunDiff = sunshine ? sunshine.valencia - sunshine.stockholm : null
 
   return (
     <section className={styles.section}>
@@ -41,7 +46,10 @@ export default function WhyValencia({ stockholm, valencia, waterTemp }) {
       </div>
 
       <p className={styles.fact}>
-        Kom ihåg att Valencia har <strong>130 fler soldagar</strong> per år än Stockholm
+        {sunshine && sunDiff != null
+          ? <>Kom ihåg att Valencia har haft <strong>{sunDiff.toLocaleString('sv-SE')} fler soltimmar</strong> än Stockholm under {sunshine.year}</>
+          : <>Hämtar soltimmar för {new Date().getFullYear()}…</>
+        }
       </p>
     </section>
   )
