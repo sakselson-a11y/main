@@ -10,11 +10,24 @@
   gap: 24px;
 }
 
+.heading {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .title {
   font-size: 1.5rem;
   font-weight: 800;
   color: #92400e;
   letter-spacing: -0.03em;
+}
+
+.todayBadge {
+  font-size: 0.8rem;
+  color: #b45309;
+  font-weight: 500;
+  opacity: 0.8;
 }
 
 .rows {

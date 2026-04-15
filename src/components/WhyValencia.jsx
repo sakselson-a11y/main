@@ -27,9 +27,16 @@ export default function WhyValencia({ stockholm, valencia, waterTemp }) {
 
   const sunDiff = sunshine ? sunshine.valencia - sunshine.stockholm : null
 
+  const today = new Date().toLocaleDateString('sv-SE', {
+    day: 'numeric', month: 'long', year: 'numeric'
+  })
+
   return (
     <section className={styles.section}>
-      <h2 className={styles.title}>Varför man ska bo i Valencia</h2>
+      <div className={styles.heading}>
+        <h2 className={styles.title}>Varför man ska bo i Valencia</h2>
+        <p className={styles.todayBadge}>Väder- och baddata från idag · {today}</p>
+      </div>
 
       <div className={styles.rows}>
         <Row icon="🌡️" label="Temperatur" value={temp.value} detail={temp.label} />
