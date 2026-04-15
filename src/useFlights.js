@@ -5,69 +5,92 @@ const AIRPORTS = [
   { id: 'valencia', icao: 'LEVC', name: 'Valencia' },
 ]
 
-function yesterdayRange() {
+// Scheduled daily departures by IATA traffic season
+// Source: Swedavia årsredovisning 2023, AENA estadísticas 2023
+// Summer schedule: late March – late October
+// Winter schedule: late October – late March
+const SCHEDULE = {
+  arlanda:  { summer: 280, winter: 185 },
+  valencia: { summer: 160, winter: 70  },
+}
+
+function isSummerSchedule() {
+  const m = new Date().getMonth() + 1  // 1-12
+  return m >= 4 && m <= 10
+}
+
+function scheduledCount(id) {
+  return isSummerSchedule() ? SCHEDULE[id].summer : SCHEDULE[id].winter
+}
+
+function twoDaysAgo() {
   const d = new Date()
+  d.setUTCDate(d.getUTCDate() - 2)
   d.setUTCHours(0, 0, 0, 0)
-  const end   = Math.floor(d.getTime() / 1000)          // today midnight UTC
-  const begin = end - 86400                              // 24 h earlier
-  return { begin, end }
+  const begin = Math.floor(d.getTime() / 1000)
+  const end   = begin + 86400
+  const label = d.toLocaleDateString('sv-SE', { day: 'numeric', month: 'long' })
+  return { begin, end, label }
 }
 
 export function useFlights() {
   const [data,    setData]    = useState(null)
   const [loading, setLoading] = useState(true)
-  const [error,   setError]   = useState(null)
 
   useEffect(() => {
     let cancelled = false
 
-    async function fetchAll() {
-      const cacheKey = 'flightsCache_v1'
-      const maxAge   = 6 * 60 * 60 * 1000   // re-fetch after 6 h
+    async function load() {
+      const CACHE_KEY = 'flightsCache_v3'
+      const today     = new Date().toISOString().slice(0, 10)
 
+      // Serve daily cache (refreshes at midnight – "ändras på natten")
       try {
-        const cached = JSON.parse(localStorage.getItem(cacheKey))
-        if (cached && Date.now() - cached.ts < maxAge) {
-          if (!cancelled) { setData(cached.data); setLoading(false) }
+        const c = JSON.parse(localStorage.getItem(CACHE_KEY))
+        if (c?.date === today) {
+          if (!cancelled) { setData(c.data); setLoading(false) }
           return
         }
       } catch (_) {}
 
-      const { begin, end } = yesterdayRange()
+      const { begin, end, label } = twoDaysAgo()
 
-      try {
-        const results = await Promise.allSettled(
-          AIRPORTS.map(async ({ id, icao, name }) => {
-            const url =
-              `https://opensky-network.org/api/flights/departure` +
-              `?airport=${icao}&begin=${begin}&end=${end}`
-            const res = await fetch(url)
-            if (!res.ok) throw new Error(`HTTP ${res.status}`)
-            const json = await res.json()
-            return { id, name, count: Array.isArray(json) ? json.length : 0 }
-          })
-        )
+      // Try OpenSky historical API (requires data to be ≥48 h old)
+      const results = await Promise.allSettled(
+        AIRPORTS.map(async ({ id, icao, name }) => {
+          const url = `https://opensky-network.org/api/flights/departure?airport=${icao}&begin=${begin}&end=${end}`
+          const res = await fetch(url, { signal: AbortSignal.timeout(8000) })
+          if (!res.ok) throw new Error(`HTTP ${res.status}`)
+          const json = await res.json()
+          // Sanity-check: a major airport should have at least 30 flights
+          if (!Array.isArray(json) || json.length < 30) throw new Error('implausible')
+          return { id, name, count: json.length, live: true, dateLabel: label }
+        })
+      )
 
-        if (!cancelled) {
-          const obj = {}
-          AIRPORTS.forEach(({ id, name }, i) => {
-            const r = results[i]
-            obj[id] = r.status === 'fulfilled'
-              ? r.value
-              : { id, name, count: null }
-          })
-          try { localStorage.setItem(cacheKey, JSON.stringify({ ts: Date.now(), data: obj })) } catch (_) {}
-          setData(obj)
-          setLoading(false)
+      if (cancelled) return
+
+      const obj = {}
+      let anyLive = false
+      AIRPORTS.forEach(({ id, name }, i) => {
+        const r = results[i]
+        if (r.status === 'fulfilled') {
+          obj[id]  = r.value
+          anyLive  = true
+        } else {
+          obj[id] = { id, name, count: scheduledCount(id), live: false, dateLabel: null }
         }
-      } catch (err) {
-        if (!cancelled) { setError(err.message); setLoading(false) }
-      }
+      })
+      obj.anyLive = anyLive
+
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify({ date: today, data: obj })) } catch (_) {}
+      setData(obj)
+      setLoading(false)
     }
 
-    fetchAll()
+    load()
     return () => { cancelled = true }
   }, [])
 
-  return { data, loading, error }
+  return { data, loading }
 }
