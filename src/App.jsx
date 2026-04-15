@@ -3,6 +3,7 @@ import { useWaterTemp } from './useWaterTemp'
 import WeatherCard from './components/WeatherCard'
 import WhyValencia from './components/WhyValencia'
 import PriceTable from './components/PriceTable'
+import Carousel from './components/Carousel'
 import styles from './App.module.css'
 
 export default function App() {
@@ -10,7 +11,14 @@ export default function App() {
   const waterTemp = useWaterTemp()
 
   const stockholm = data?.find(d => d.city.id === 'stockholm')
-  const valencia = data?.find(d => d.city.id === 'valencia')
+  const valencia  = data?.find(d => d.city.id === 'valencia')
+
+  const slides = data ? [
+    <WeatherCard data={stockholm} />,
+    <WeatherCard data={valencia} />,
+    <WhyValencia stockholm={stockholm} valencia={valencia} waterTemp={waterTemp} />,
+    <PriceTable />,
+  ] : []
 
   return (
     <div className={styles.layout}>
@@ -19,32 +27,20 @@ export default function App() {
         <p className={styles.subtitle}>Aktuella jämförelser · Uppdateras automatiskt</p>
       </header>
 
-      <main className={styles.main}>
-        {loading && (
-          <div className={styles.state}>
-            <span className={styles.spinner} aria-hidden="true" />
-            <p>Hämtar väderdata…</p>
-          </div>
-        )}
+      {loading && (
+        <div className={styles.state}>
+          <span className={styles.spinner} aria-hidden="true" />
+          <p>Hämtar väderdata…</p>
+        </div>
+      )}
 
-        {error && (
-          <div className={styles.state}>
-            <p className={styles.error}>⚠️ Kunde inte hämta data: {error}</p>
-          </div>
-        )}
+      {error && (
+        <div className={styles.state}>
+          <p className={styles.error}>⚠️ Kunde inte hämta data: {error}</p>
+        </div>
+      )}
 
-        {data && (
-          <>
-            <div className={styles.cards}>
-              {data.map((item) => (
-                <WeatherCard key={item.city.id} data={item} />
-              ))}
-            </div>
-            <WhyValencia stockholm={stockholm} valencia={valencia} waterTemp={waterTemp} />
-            <PriceTable />
-          </>
-        )}
-      </main>
+      {data && <Carousel slides={slides} />}
 
       <footer className={styles.footer}>
         Källa: <a href="https://open-meteo.com" target="_blank" rel="noopener noreferrer">Open-Meteo</a>

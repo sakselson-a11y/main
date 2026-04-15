@@ -1,0 +1,89 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+
+/* Dot nav */
+.dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 0 16px;
+  flex-shrink: 0;
+}
+
+.dot,
+.dotActive {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 6px;
+}
+
+.dot::before,
+.dotActive::before {
+  content: '';
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.dot::before {
+  background: #d1d5db;
+}
+
+.dotActive::before {
+  background: #d97706;
+  transform: scale(1.3);
+}
+
+.dotLabel {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: #9ca3af;
+  transition: color 0.2s;
+}
+
+.dotActive .dotLabel {
+  color: #d97706;
+}
+
+/* Viewport clips the sliding track */
+.viewport {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  width: 100%;
+}
+
+/* Track slides horizontally */
+.track {
+  display: flex;
+  height: 100%;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+
+/* Each slide */
+.slide {
+  flex: 0 0 100%;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  padding: 8px 20px 40px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  scrollbar-width: thin;
+  scrollbar-color: #e5e7eb transparent;
+}
