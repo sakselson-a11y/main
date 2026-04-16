@@ -87,3 +87,10 @@
   scrollbar-width: thin;
   scrollbar-color: #e5e7eb transparent;
 }
+
+@media (prefers-color-scheme: dark) {
+  .dot::before     { background: #334155; }
+  .dotLabel        { color: #475569; }
+  .dotActive .dotLabel { color: #d97706; }
+  .slide           { scrollbar-color: #334155 transparent; }
+}

@@ -77,3 +77,11 @@
   color: #6b7280;
   text-decoration: underline;
 }
+
+@media (prefers-color-scheme: dark) {
+  .subtitle { color: #94a3b8; }
+  .state    { color: #94a3b8; }
+  .spinner  { border-color: #334155; border-top-color: #3b82f6; }
+  .footer   { color: #475569; }
+  .footer a { color: #64748b; }
+}

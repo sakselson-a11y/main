@@ -142,3 +142,21 @@
     display: none;
   }
 }
+
+@media (prefers-color-scheme: dark) {
+  .section {
+    background: linear-gradient(135deg, #1c1408, #201a0c);
+    border-color: #6b3800;
+  }
+
+  .title      { color: #fbbf24; }
+  .todayBadge { color: #d97706; opacity: 1; }
+
+  .rows          { border-color: #6b3800; }
+  .row           { background: #1c1408; border-bottom-color: #2d1e08; }
+  .row:last-child { border-bottom: none; }
+
+  .rowLabel  { color: #e5e7eb; }
+  .rowSub    { color: #6b7280; }
+  .rowDetail { color: #94a3b8; }
+}

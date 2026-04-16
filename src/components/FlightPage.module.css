@@ -93,3 +93,23 @@
   color: #6b7280;
   text-decoration: underline;
 }
+
+@media (prefers-color-scheme: dark) {
+  .title { color: #f1f5f9; }
+  .sub   { color: #94a3b8; }
+
+  .card        { background: #1e293b; border-color: #334155; }
+  .airportName { color: #94a3b8; }
+  .count       { color: #f1f5f9; }
+  .countLabel  { color: #64748b; }
+
+  .verdict {
+    background: linear-gradient(135deg, #0c1e35, #0d2540);
+    border-color: #1e3a5f;
+    color: #60a5fa;
+  }
+
+  .loading { color: #94a3b8; }
+  .note    { color: #475569; }
+  .note a  { color: #64748b; }
+}

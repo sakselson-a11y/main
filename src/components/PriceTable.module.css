@@ -103,3 +103,19 @@
     font-size: 0.85rem;
   }
 }
+
+@media (prefers-color-scheme: dark) {
+  .section { background: #1e293b; border-color: #334155; }
+  .title   { color: #f1f5f9; }
+
+  .rows              { border-color: #334155; }
+  .row               { background: #1e293b; border-bottom-color: #334155; }
+  .row:nth-child(even) { background: #162032; }
+
+  .item    { color: #e2e8f0; }
+  .cheaper { color: #4ade80; }
+  .dearer  { color: #f87171; }
+  .label   { color: #94a3b8; }
+  .source  { color: #475569; }
+  .source a { color: #64748b; }
+}

@@ -20,3 +20,10 @@ body {
 @media (max-width: 640px) {
   html { font-size: 15px; }
 }
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #0f172a;
+    color: #f1f5f9;
+  }
+}
