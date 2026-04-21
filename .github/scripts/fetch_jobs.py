@@ -15,21 +15,23 @@ HOMERUN_BASE = "https://api.homerun.co/v2"
 
 
 def fetch_teamtailor(api_key: str) -> list[dict]:
+    # No Content-Type on GET requests — causes 400 on some API versions
     headers = {
         "Authorization": f'Token token="{api_key}"',
         "X-Api-Version": "20210218",
-        "Content-Type": "application/vnd.api+json",
+        "Accept": "application/vnd.api+json",
     }
     jobs: list[dict] = []
     url = f"{TEAMTAILOR_BASE}/jobs"
     params: dict = {
-        "filter[status]": "open",
         "include": "department,locations",
         "page[size]": 100,
     }
 
     while url:
         resp = requests.get(url, headers=headers, params=params, timeout=15)
+        if not resp.ok:
+            print(f"Teamtailor HTTP {resp.status_code}: {resp.text[:500]}", file=sys.stderr)
         resp.raise_for_status()
         body = resp.json()
 
@@ -77,23 +79,39 @@ def fetch_teamtailor(api_key: str) -> list[dict]:
 
 
 def fetch_homerun(api_key: str) -> list[dict]:
-    headers = {
+    bearer_headers = {
         "Authorization": f"Bearer {api_key}",
         "Accept": "application/json",
     }
+    token_headers = {
+        "Authorization": f"Token {api_key}",
+        "Accept": "application/json",
+    }
 
-    # Try v2 first, fall back to v1
-    for endpoint in [f"{HOMERUN_BASE}/jobs", "https://api.homerun.co/v1/jobs"]:
+    endpoints = [
+        ("https://api.homerun.co/v2/jobs",       bearer_headers),
+        ("https://api.homerun.co/v1/jobs",        bearer_headers),
+        ("https://api.homerun.co/v2/vacancies",   bearer_headers),
+        ("https://api.homerun.co/v1/vacancies",   bearer_headers),
+        ("https://api.homerun.co/v2/jobs",        token_headers),
+        ("https://api.homerun.co/v1/jobs",        token_headers),
+    ]
+
+    body = None
+    for endpoint, hdrs in endpoints:
         try:
-            resp = requests.get(endpoint, headers=headers, timeout=15)
-            if resp.status_code == 404:
+            resp = requests.get(endpoint, headers=hdrs, timeout=15)
+            print(f"Homerun {endpoint} → {resp.status_code}", file=sys.stderr)
+            if resp.status_code in (401, 403, 404, 405, 422):
+                print(f"  body: {resp.text[:300]}", file=sys.stderr)
                 continue
             resp.raise_for_status()
             body = resp.json()
             break
-        except requests.HTTPError:
+        except (requests.HTTPError, requests.ConnectionError):
             continue
-    else:
+
+    if body is None:
         raise RuntimeError("No working Homerun endpoint found")
 
     # Normalise: body may be a list or wrapped in data/jobs/vacancies
