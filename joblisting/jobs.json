@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-04-21T13:15:14.560089+00:00",
-  "total": 17,
+  "updated_at": "2026-04-21T13:23:36.293601+00:00",
+  "total": 25,
   "jobs": [
     {
       "id": "tt-7555646",
@@ -25,7 +25,7 @@
       "title": "Open application",
       "department": "",
       "location": "",
-      "url": "",
+      "url": "https://varo.homerun.co/open-application",
       "source": "Homerun",
       "published_at": "2018-06-18T10:05:33.000000Z"
     },
@@ -34,7 +34,7 @@
       "title": "Duales Studium 2026 - Bachelor of Science Business Administration",
       "department": "",
       "location": "",
-      "url": "",
+      "url": "https://varo.homerun.co/duales-studium",
       "source": "Homerun",
       "published_at": "2023-05-12T09:37:11.000000Z"
     },
@@ -43,7 +43,7 @@
       "title": "Commercial Analyst (m/w/d)",
       "department": "",
       "location": "",
-      "url": "",
+      "url": "https://varo.homerun.co/commercial-analyst-4",
       "source": "Homerun",
       "published_at": "2024-11-18T11:44:02.000000Z"
     },
@@ -52,7 +52,7 @@
       "title": "Inland Supply Trader (m/w/d)",
       "department": "",
       "location": "",
-      "url": "",
+      "url": "https://varo.homerun.co/inland-supply-trader-2",
       "source": "Homerun",
       "published_at": "2025-01-28T12:09:38.000000Z"
     },
@@ -61,7 +61,7 @@
       "title": "HR Administrator / Personalsachbearbeiter (m/w/d)",
       "department": "",
       "location": "",
-      "url": "",
+      "url": "https://varo.homerun.co/hr-administrator-personalsachbearbeiter",
       "source": "Homerun",
       "published_at": "2025-07-31T11:39:42.000000Z"
     },
@@ -70,7 +70,7 @@
       "title": "Rail Optimization Specialist (m/w/d)",
       "department": "",
       "location": "",
-      "url": "",
+      "url": "https://varo.homerun.co/rail-optimization-specialist-m-w-d",
       "source": "Homerun",
       "published_at": "2025-09-18T16:18:55.000000Z"
     },
@@ -79,7 +79,7 @@
       "title": "(Senior) HR Business Partner (m/w/d)",
       "department": "",
       "location": "",
-      "url": "",
+      "url": "https://varo.homerun.co/senior-hr-business-partner-m-w-d",
       "source": "Homerun",
       "published_at": "2026-01-08T16:55:13.000000Z"
     },
@@ -88,7 +88,7 @@
       "title": "Operativer Mitarbeiter Tanklager (m/w/d) Dortmund",
       "department": "",
       "location": "",
-      "url": "",
+      "url": "https://varo.homerun.co/operativer-mitarbeiter-tanklager-m-w-d-dortmund",
       "source": "Homerun",
       "published_at": "2026-02-17T11:14:24.000000Z"
     },
@@ -97,7 +97,7 @@
       "title": "IT Business Analyst & Project Manager",
       "department": "",
       "location": "",
-      "url": "",
+      "url": "https://varo.homerun.co/it-business-analyst-project-manager-2",
       "source": "Homerun",
       "published_at": "2026-02-25T09:55:35.000000Z"
     },
@@ -106,7 +106,7 @@
       "title": "Terminal Operator",
       "department": "",
       "location": "",
-      "url": "",
+      "url": "https://varo.homerun.co/terminal-operator-3",
       "source": "Homerun",
       "published_at": "2026-03-05T11:37:59.000000Z"
     },
@@ -115,7 +115,7 @@
       "title": "Sustainability Assurance Lead",
       "department": "",
       "location": "",
-      "url": "",
+      "url": "https://varo.homerun.co/sustainability-assurance-lead-2",
       "source": "Homerun",
       "published_at": "2026-03-05T12:15:43.000000Z"
     },
@@ -124,7 +124,7 @@
       "title": "Customer Success Manager / Customer Experience Manager - (m/w/d)",
       "department": "",
       "location": "",
-      "url": "",
+      "url": "https://varo.homerun.co/customer-success-manager-customer-experience-manager-m-w-d",
       "source": "Homerun",
       "published_at": "2026-03-17T09:14:42.000000Z"
     },
@@ -133,7 +133,7 @@
       "title": "Jr. Supply Planner",
       "department": "",
       "location": "",
-      "url": "",
+      "url": "https://varo.homerun.co/jr-supply-planner-2",
       "source": "Homerun",
       "published_at": "2026-03-17T09:21:40.000000Z"
     },
@@ -142,7 +142,7 @@
       "title": "Project Management Officer (m/w/d)",
       "department": "",
       "location": "",
-      "url": "",
+      "url": "https://varo.homerun.co/project-management-officer-m-w-d",
       "source": "Homerun",
       "published_at": "2026-03-19T09:13:18.000000Z"
     },
@@ -151,9 +151,81 @@
       "title": "Financial Administrator",
       "department": "",
       "location": "",
-      "url": "",
+      "url": "https://varo.homerun.co/financial-administrator",
       "source": "Homerun",
       "published_at": "2026-03-24T09:28:35.000000Z"
+    },
+    {
+      "id": "hr-job_HUpxX6k3w7rw7qhfkrEm",
+      "title": "Commercial Strategy Analyst - Energy Transition",
+      "department": "",
+      "location": "",
+      "url": "https://varo.homerun.co/commercial-strategy-analyst-energy-transition",
+      "source": "Homerun",
+      "published_at": "2026-03-25T08:39:36.000000Z"
+    },
+    {
+      "id": "hr-job_FJL2iMPQoSiK0WhicED0",
+      "title": "Accountant / Finanzbuchhalter (m/w/d)",
+      "department": "",
+      "location": "",
+      "url": "https://varo.homerun.co/accountant-finanzbuchhalter-m-w-d",
+      "source": "Homerun",
+      "published_at": "2026-03-25T13:46:22.000000Z"
+    },
+    {
+      "id": "hr-job_NiVcpbMQ7lDsgD7Dxo9V",
+      "title": "Supply Planner (m/w/d)",
+      "department": "",
+      "location": "",
+      "url": "https://varo.homerun.co/supply-planner-m-w-d",
+      "source": "Homerun",
+      "published_at": "2026-04-07T08:53:19.000000Z"
+    },
+    {
+      "id": "hr-job_CUNO2rtThL5nI881sVb8",
+      "title": "Elektroplaner mit Bauleitungsfunktion (m/w/d)",
+      "department": "",
+      "location": "",
+      "url": "https://varo.homerun.co/elektroplaner-mit-bauleitungsfunktion-m-w-d",
+      "source": "Homerun",
+      "published_at": "2026-04-08T15:46:34.000000Z"
+    },
+    {
+      "id": "hr-job_XjTfqaOaCoS257iH2DV7",
+      "title": "Betriebsmitarbeiter",
+      "department": "",
+      "location": "",
+      "url": "https://varo.homerun.co/betriebsmitarbeiter-2",
+      "source": "Homerun",
+      "published_at": "2026-04-09T05:26:47.000000Z"
+    },
+    {
+      "id": "hr-job_x0mJnLpnZ6WahoLLhioT",
+      "title": "(Senior) Payroll Specialist (m/w/d)",
+      "department": "",
+      "location": "",
+      "url": "https://varo.homerun.co/senior-payroll-specialist-m-w-d",
+      "source": "Homerun",
+      "published_at": "2026-04-09T14:33:28.000000Z"
+    },
+    {
+      "id": "hr-job_ByX4bHevrq7Cu4YOxiVt",
+      "title": "Purchasing Specialist",
+      "department": "",
+      "location": "",
+      "url": "https://varo.homerun.co/purchasing-specialist",
+      "source": "Homerun",
+      "published_at": "2026-04-10T05:45:57.000000Z"
+    },
+    {
+      "id": "hr-job_39jIrXr400AwtgdhEmwF",
+      "title": "Servicetechniker / Elektriker im Außendienst (m/w/d)",
+      "department": "",
+      "location": "",
+      "url": "https://varo.homerun.co/servicetechniker-elektriker-im-aussendienst-m-w-d",
+      "source": "Homerun",
+      "published_at": "2026-04-20T11:28:56.000000Z"
     }
   ],
   "errors": null
