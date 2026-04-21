@@ -1,6 +1,9 @@
 {
-  "updated_at": "2026-04-21T12:24:20.879470+00:00",
+  "updated_at": "2026-04-21T12:57:57.214937+00:00",
   "total": 0,
   "jobs": [],
-  "errors": null
+  "errors": [
+    "Teamtailor fetch failed: 400 Client Error: Bad Request for url: https://api.teamtailor.com/v1/jobs?filter%5Bstatus%5D=open&include=department%2Clocations&page%5Bsize%5D=100",
+    "Homerun fetch failed: No working Homerun endpoint found"
+  ]
 }
