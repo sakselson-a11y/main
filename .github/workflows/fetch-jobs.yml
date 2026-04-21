@@ -1,0 +1,41 @@
+name: Fetch Job Listings
+
+on:
+  schedule:
+    - cron: '0 * * * *'   # Every hour
+  workflow_dispatch:        # Manual trigger from GitHub UI
+  push:
+    paths:
+      - '.github/scripts/fetch_jobs.py'
+      - '.github/workflows/fetch-jobs.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fetch-jobs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Fetch and merge job listings
+        env:
+          TEAMTAILOR_API_KEY: ${{ secrets.TEAMTAILOR_API_KEY }}
+          HOMERUN_API_KEY: ${{ secrets.HOMERUN_API_KEY }}
+        run: python .github/scripts/fetch_jobs.py
+
+      - name: Commit updated jobs.json
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add joblisting/jobs.json
+          git diff --cached --quiet || git commit -m 'chore: update job listings [skip ci]'
+          git push
