@@ -14,7 +14,8 @@ TEAMTAILOR_BASE = "https://api.teamtailor.com/v1"
 HOMERUN_BASE = "https://api.homerun.co/v2"
 
 
-def fetch_teamtailor(api_key: str) -> list[dict]:
+def fetch_teamtailor(api_key: str) -> tuple[list[dict], dict]:
+    """Returns (jobs, raw_first_job) for debugging."""
     first_url = f"{TEAMTAILOR_BASE}/jobs"
 
     # Step 1: find which auth format works
@@ -47,6 +48,7 @@ def fetch_teamtailor(api_key: str) -> list[dict]:
 
     # Step 3: paginate and collect
     jobs: list[dict] = []
+    raw_first: dict = {}
     url: str | None = first_url
     params = use_params.copy()
 
@@ -61,6 +63,9 @@ def fetch_teamtailor(api_key: str) -> list[dict]:
         }
 
         for job in body.get("data", []):
+            if not raw_first:
+                raw_first = job  # save for debug
+
             attrs = job.get("attributes", {})
             rels  = job.get("relationships", {})
             links = job.get("links", {})
@@ -97,7 +102,7 @@ def fetch_teamtailor(api_key: str) -> list[dict]:
         url = (body.get("links") or {}).get("next") or None
         params = {}
 
-    return jobs
+    return jobs, raw_first
 
 
 def _parse_location(val) -> str:
@@ -125,7 +130,7 @@ def _parse_department(val) -> str:
     return ""
 
 
-def fetch_homerun(api_key: str) -> list[dict]:
+def fetch_homerun(api_key: str) -> tuple[list[dict], dict]:
     bearer_headers = {"Authorization": f"Bearer {api_key}", "Accept": "application/json"}
     token_headers  = {"Authorization": f"Token {api_key}",  "Accept": "application/json"}
 
@@ -158,6 +163,7 @@ def fetch_homerun(api_key: str) -> list[dict]:
 
     # Paginate through all pages
     jobs: list[dict] = []
+    raw_first: dict = {}
     page = 1
 
     while True:
@@ -170,14 +176,13 @@ def fetch_homerun(api_key: str) -> list[dict]:
         resp.raise_for_status()
         body = resp.json()
 
-        # Log raw structure of first item on first page for debugging
+        # Capture first raw item for debug output
         if page == 1:
-            raw_items = body if isinstance(body, list) else (
+            raw_items_debug = body if isinstance(body, list) else (
                 body.get("data") or body.get("jobs") or body.get("vacancies") or []
             )
-            if raw_items:
-                print(f"Homerun raw first item keys: {list(raw_items[0].keys())}", file=sys.stderr)
-                print(f"Homerun raw first item: {json.dumps(raw_items[0])[:800]}", file=sys.stderr)
+            if raw_items_debug:
+                raw_first = raw_items_debug[0]
 
         if isinstance(body, list):
             items    = body
@@ -234,7 +239,7 @@ def fetch_homerun(api_key: str) -> list[dict]:
             break
         page += 1
 
-    return jobs
+    return jobs, raw_first
 
 
 def main() -> None:
@@ -243,11 +248,13 @@ def main() -> None:
 
     all_jobs: list[dict] = []
     errors: list[str] = []
+    debug: dict = {}
 
     if tt_key:
         try:
-            tt_jobs = fetch_teamtailor(tt_key)
+            tt_jobs, tt_raw = fetch_teamtailor(tt_key)
             all_jobs.extend(tt_jobs)
+            debug["teamtailor_first_raw"] = tt_raw
             print(f"Teamtailor: {len(tt_jobs)} jobs fetched")
         except Exception as exc:
             msg = f"Teamtailor fetch failed: {exc}"
@@ -258,8 +265,9 @@ def main() -> None:
 
     if hr_key:
         try:
-            hr_jobs = fetch_homerun(hr_key)
+            hr_jobs, hr_raw = fetch_homerun(hr_key)
             all_jobs.extend(hr_jobs)
+            debug["homerun_first_raw"] = hr_raw
             print(f"Homerun: {len(hr_jobs)} jobs fetched")
         except Exception as exc:
             msg = f"Homerun fetch failed: {exc}"
@@ -273,6 +281,7 @@ def main() -> None:
         "total": len(all_jobs),
         "jobs": all_jobs,
         "errors": errors if errors else None,
+        "debug": debug,
     }
 
     out_path = "joblisting/jobs.json"
