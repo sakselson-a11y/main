@@ -15,27 +15,59 @@ HOMERUN_BASE = "https://api.homerun.co/v2"
 
 
 def fetch_teamtailor(api_key: str) -> list[dict]:
-    # No Content-Type on GET requests — causes 400 on some API versions
-    headers = {
-        "Authorization": f'Token token="{api_key}"',
-        "X-Api-Version": "20210218",
-        "Accept": "application/vnd.api+json",
-    }
+    # Try progressively simpler requests to find what Teamtailor accepts
+    attempts = [
+        {
+            "headers": {
+                "Authorization": f'Token token="{api_key}"',
+                "X-Api-Version": "20210218",
+            },
+            "params": {"include": "department,locations", "page[size]": 100},
+        },
+        {
+            "headers": {
+                "Authorization": f'Token token="{api_key}"',
+                "X-Api-Version": "20210218",
+            },
+            "params": {},
+        },
+        {
+            "headers": {"Authorization": f'Token token="{api_key}"'},
+            "params": {},
+        },
+        {
+            "headers": {"Authorization": f"Bearer {api_key}"},
+            "params": {},
+        },
+    ]
+
+    first_url = f"{TEAMTAILOR_BASE}/jobs"
+    working_headers = None
+    working_params: dict = {}
+
+    for attempt in attempts:
+        resp = requests.get(first_url, headers=attempt["headers"], params=attempt["params"], timeout=15)
+        print(f"Teamtailor attempt headers={list(attempt['headers'].keys())} params={list(attempt['params'].keys())} → {resp.status_code}", file=sys.stderr)
+        if not resp.ok:
+            print(f"  body: {resp.text[:400]}", file=sys.stderr)
+            continue
+        working_headers = attempt["headers"]
+        working_params = attempt["params"]
+        break
+
+    if working_headers is None:
+        raise RuntimeError("All Teamtailor auth attempts failed — check API key")
+
+    # Now paginate with the working configuration
     jobs: list[dict] = []
-    url = f"{TEAMTAILOR_BASE}/jobs"
-    params: dict = {
-        "include": "department,locations",
-        "page[size]": 100,
-    }
+    url: str | None = first_url
+    params = working_params.copy()
 
     while url:
-        resp = requests.get(url, headers=headers, params=params, timeout=15)
-        if not resp.ok:
-            print(f"Teamtailor HTTP {resp.status_code}: {resp.text[:500]}", file=sys.stderr)
+        resp = requests.get(url, headers=working_headers, params=params, timeout=15)
         resp.raise_for_status()
         body = resp.json()
 
-        # Build lookup for included resources
         included = {
             f"{item['type']}/{item['id']}": item
             for item in body.get("included", [])
@@ -43,36 +75,39 @@ def fetch_teamtailor(api_key: str) -> list[dict]:
 
         for job in body.get("data", []):
             attrs = job.get("attributes", {})
-            rels = job.get("relationships", {})
+            rels  = job.get("relationships", {})
             links = job.get("links", {})
 
             dept = ""
-            dept_ref = rels.get("department", {}).get("data") or {}
+            dept_ref = (rels.get("department") or {}).get("data") or {}
             if dept_ref:
                 dept_item = included.get(f"departments/{dept_ref.get('id')}", {})
                 dept = dept_item.get("attributes", {}).get("name", "")
 
             location = ""
-            loc_refs = rels.get("locations", {}).get("data") or []
+            loc_refs = (rels.get("locations") or {}).get("data") or []
             if loc_refs:
                 loc_item = included.get(f"locations/{loc_refs[0].get('id')}", {})
                 loc_attrs = loc_item.get("attributes", {})
                 location = loc_attrs.get("city") or loc_attrs.get("name", "")
 
-            jobs.append(
-                {
-                    "id": f"tt-{job['id']}",
-                    "title": attrs.get("title", ""),
-                    "department": dept,
-                    "location": location,
-                    "url": links.get("careersite-job-url", ""),
-                    "source": "Teamtailor",
-                    "published_at": attrs.get("created-at", ""),
-                }
-            )
+            # Fall back to attributes if include wasn't supported
+            if not dept:
+                dept = attrs.get("department-name", "")
+            if not location:
+                location = attrs.get("location-name", "") or attrs.get("city", "")
 
-        # Follow pagination
-        url = body.get("links", {}).get("next") or None
+            jobs.append({
+                "id": f"tt-{job['id']}",
+                "title": attrs.get("title", ""),
+                "department": dept,
+                "location": location,
+                "url": links.get("careersite-job-url", ""),
+                "source": "Teamtailor",
+                "published_at": attrs.get("created-at", ""),
+            })
+
+        url = (body.get("links") or {}).get("next") or None
         params = {}
 
     return jobs
