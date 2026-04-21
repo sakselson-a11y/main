@@ -15,53 +15,40 @@ HOMERUN_BASE = "https://api.homerun.co/v2"
 
 
 def fetch_teamtailor(api_key: str) -> list[dict]:
-    # Try progressively simpler requests to find what Teamtailor accepts
-    attempts = [
-        {
-            "headers": {
-                "Authorization": f'Token token="{api_key}"',
-                "X-Api-Version": "20210218",
-            },
-            "params": {"include": "department,locations", "page[size]": 100},
-        },
-        {
-            "headers": {
-                "Authorization": f'Token token="{api_key}"',
-                "X-Api-Version": "20210218",
-            },
-            "params": {},
-        },
-        {
-            "headers": {"Authorization": f'Token token="{api_key}"'},
-            "params": {},
-        },
-        {
-            "headers": {"Authorization": f"Bearer {api_key}"},
-            "params": {},
-        },
-    ]
-
     first_url = f"{TEAMTAILOR_BASE}/jobs"
-    working_headers = None
-    working_params: dict = {}
 
-    for attempt in attempts:
-        resp = requests.get(first_url, headers=attempt["headers"], params=attempt["params"], timeout=15)
-        print(f"Teamtailor attempt headers={list(attempt['headers'].keys())} params={list(attempt['params'].keys())} → {resp.status_code}", file=sys.stderr)
-        if not resp.ok:
-            print(f"  body: {resp.text[:400]}", file=sys.stderr)
-            continue
-        working_headers = attempt["headers"]
-        working_params = attempt["params"]
-        break
+    # Step 1: find which auth format works
+    auth_candidates = [
+        {"Authorization": f'Token token="{api_key}"', "X-Api-Version": "20210218"},
+        {"Authorization": f'Token token="{api_key}"'},
+        {"Authorization": f"Bearer {api_key}"},
+    ]
+    working_headers = None
+    for hdrs in auth_candidates:
+        resp = requests.get(first_url, headers=hdrs, timeout=15)
+        print(f"Teamtailor auth probe → {resp.status_code}", file=sys.stderr)
+        if resp.ok:
+            working_headers = hdrs
+            break
+        print(f"  body: {resp.text[:300]}", file=sys.stderr)
 
     if working_headers is None:
         raise RuntimeError("All Teamtailor auth attempts failed — check API key")
 
-    # Now paginate with the working configuration
+    # Step 2: try with include + pagination params
+    full_params = {"include": "department,locations", "page[size]": 100}
+    resp = requests.get(first_url, headers=working_headers, params=full_params, timeout=15)
+    print(f"Teamtailor with include → {resp.status_code}", file=sys.stderr)
+    if resp.ok:
+        use_params: dict = full_params
+    else:
+        print(f"  include failed, fetching without: {resp.text[:300]}", file=sys.stderr)
+        use_params = {}
+
+    # Step 3: paginate and collect
     jobs: list[dict] = []
     url: str | None = first_url
-    params = working_params.copy()
+    params = use_params.copy()
 
     while url:
         resp = requests.get(url, headers=working_headers, params=params, timeout=15)
@@ -83,17 +70,17 @@ def fetch_teamtailor(api_key: str) -> list[dict]:
             if dept_ref:
                 dept_item = included.get(f"departments/{dept_ref.get('id')}", {})
                 dept = dept_item.get("attributes", {}).get("name", "")
+            if not dept:
+                dept = attrs.get("department-name", "")
 
             location = ""
             loc_refs = (rels.get("locations") or {}).get("data") or []
             if loc_refs:
                 loc_item = included.get(f"locations/{loc_refs[0].get('id')}", {})
                 loc_attrs = loc_item.get("attributes", {})
-                location = loc_attrs.get("city") or loc_attrs.get("name", "")
-
-            # Fall back to attributes if include wasn't supported
-            if not dept:
-                dept = attrs.get("department-name", "")
+                city    = loc_attrs.get("city", "")
+                country = loc_attrs.get("country", "") or loc_attrs.get("country-code", "")
+                location = ", ".join(filter(None, [city, country]))
             if not location:
                 location = attrs.get("location-name", "") or attrs.get("city", "")
 
@@ -113,70 +100,139 @@ def fetch_teamtailor(api_key: str) -> list[dict]:
     return jobs
 
 
+def _parse_location(val) -> str:
+    """Normalise a location field that may be a string, dict, or list."""
+    if not val:
+        return ""
+    if isinstance(val, str):
+        return val
+    if isinstance(val, dict):
+        city    = val.get("city") or val.get("name") or ""
+        country = val.get("country") or val.get("country_name") or val.get("country_code") or ""
+        return ", ".join(filter(None, [city, country]))
+    if isinstance(val, list) and val:
+        return _parse_location(val[0])
+    return ""
+
+
+def _parse_department(val) -> str:
+    if not val:
+        return ""
+    if isinstance(val, str):
+        return val
+    if isinstance(val, dict):
+        return val.get("name") or val.get("title") or ""
+    return ""
+
+
 def fetch_homerun(api_key: str) -> list[dict]:
-    bearer_headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Accept": "application/json",
-    }
-    token_headers = {
-        "Authorization": f"Token {api_key}",
-        "Accept": "application/json",
-    }
+    bearer_headers = {"Authorization": f"Bearer {api_key}", "Accept": "application/json"}
+    token_headers  = {"Authorization": f"Token {api_key}",  "Accept": "application/json"}
 
     endpoints = [
-        ("https://api.homerun.co/v2/jobs",       bearer_headers),
-        ("https://api.homerun.co/v1/jobs",        bearer_headers),
-        ("https://api.homerun.co/v2/vacancies",   bearer_headers),
-        ("https://api.homerun.co/v1/vacancies",   bearer_headers),
-        ("https://api.homerun.co/v2/jobs",        token_headers),
-        ("https://api.homerun.co/v1/jobs",        token_headers),
+        ("https://api.homerun.co/v2/jobs",      bearer_headers),
+        ("https://api.homerun.co/v1/jobs",       bearer_headers),
+        ("https://api.homerun.co/v2/vacancies",  bearer_headers),
+        ("https://api.homerun.co/v1/vacancies",  bearer_headers),
+        ("https://api.homerun.co/v2/jobs",       token_headers),
+        ("https://api.homerun.co/v1/jobs",       token_headers),
     ]
 
-    body = None
+    working_url     = None
+    working_headers = None
     for endpoint, hdrs in endpoints:
         try:
             resp = requests.get(endpoint, headers=hdrs, timeout=15)
             print(f"Homerun {endpoint} → {resp.status_code}", file=sys.stderr)
-            if resp.status_code in (401, 403, 404, 405, 422):
+            if not resp.ok:
                 print(f"  body: {resp.text[:300]}", file=sys.stderr)
                 continue
-            resp.raise_for_status()
-            body = resp.json()
+            working_url     = endpoint
+            working_headers = hdrs
             break
         except (requests.HTTPError, requests.ConnectionError):
             continue
 
-    if body is None:
+    if working_url is None:
         raise RuntimeError("No working Homerun endpoint found")
 
-    # Normalise: body may be a list or wrapped in data/jobs/vacancies
-    if isinstance(body, list):
-        items = body
-    else:
-        items = (
-            body.get("data")
-            or body.get("jobs")
-            or body.get("vacancies")
-            or []
-        )
-
+    # Paginate through all pages
     jobs: list[dict] = []
-    for job in items:
-        jobs.append(
-            {
-                "id": f"hr-{job.get('id', '')}",
-                "title": job.get("title") or job.get("name", ""),
-                "department": job.get("department") or job.get("team", ""),
-                "location": job.get("location") or job.get("city", ""),
-                "url": (
-                    job.get("url")
-                    or job.get("application_url")
-                    or job.get("link", "")
-                ),
-                "source": "Homerun",
-                "published_at": job.get("published_at") or job.get("created_at", ""),
-            }
+    page = 1
+
+    while True:
+        resp = requests.get(
+            working_url,
+            headers=working_headers,
+            params={"page": page, "per_page": 100},
+            timeout=15,
         )
+        resp.raise_for_status()
+        body = resp.json()
+
+        # Log raw structure of first item on first page for debugging
+        if page == 1:
+            raw_items = body if isinstance(body, list) else (
+                body.get("data") or body.get("jobs") or body.get("vacancies") or []
+            )
+            if raw_items:
+                print(f"Homerun raw first item keys: {list(raw_items[0].keys())}", file=sys.stderr)
+                print(f"Homerun raw first item: {json.dumps(raw_items[0])[:800]}", file=sys.stderr)
+
+        if isinstance(body, list):
+            items    = body
+            has_more = False  # no pagination info in plain list
+        else:
+            items = (
+                body.get("data")
+                or body.get("jobs")
+                or body.get("vacancies")
+                or []
+            )
+            meta     = body.get("meta") or {}
+            has_more = (
+                bool((body.get("links") or {}).get("next"))
+                or (meta.get("current_page", page) < meta.get("last_page", page))
+                or (len(items) == 100)
+            )
+
+        if not items:
+            break
+
+        for job in items:
+            raw_loc  = (
+                job.get("location")
+                or job.get("city")
+                or job.get("office")
+                or job.get("location_name")
+            )
+            raw_dept = (
+                job.get("department")
+                or job.get("team")
+                or job.get("category")
+            )
+            raw_url  = (
+                job.get("url")
+                or job.get("application_url")
+                or job.get("job_url")
+                or job.get("public_url")
+                or job.get("link")
+                or job.get("career_page_url")
+            )
+
+            jobs.append({
+                "id":           f"hr-{job.get('id', '')}",
+                "title":        job.get("title") or job.get("name", ""),
+                "department":   _parse_department(raw_dept),
+                "location":     _parse_location(raw_loc),
+                "url":          raw_url or "",
+                "source":       "Homerun",
+                "published_at": job.get("published_at") or job.get("created_at", ""),
+            })
+
+        if not has_more:
+            break
+        page += 1
 
     return jobs
 
