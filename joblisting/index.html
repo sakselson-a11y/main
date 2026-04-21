@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lediga tjänster</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f5f5f5;
+      --surface: #ffffff;
+      --border: #e2e2e2;
+      --text: #1a1a1a;
+      --muted: #6b7280;
+      --accent: #1d4ed8;
+      --accent-hover: #1e40af;
+      --tt-badge: #4f46e5;
+      --hr-badge: #0891b2;
+      --radius: 10px;
+      --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
+      --shadow-hover: 0 4px 12px rgba(0,0,0,.12);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 32px 24px 24px;
+    }
+    .header-inner {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    header h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -.02em;
+      margin-bottom: 6px;
+    }
+    header p.subtitle {
+      color: var(--muted);
+      font-size: .95rem;
+    }
+
+    /* ── Controls ── */
+    .controls {
+      max-width: 900px;
+      margin: 24px auto;
+      padding: 0 24px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .search-wrap {
+      flex: 1;
+      min-width: 200px;
+      position: relative;
+    }
+    .search-wrap svg {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      pointer-events: none;
+    }
+    #search {
+      width: 100%;
+      padding: 10px 12px 10px 38px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: .95rem;
+      background: var(--surface);
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    #search:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(29,78,216,.12);
+    }
+
+    .filter-btn {
+      padding: 10px 16px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      font-size: .875rem;
+      cursor: pointer;
+      transition: all .15s;
+      color: var(--muted);
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .filter-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .filter-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    /* ── Results count ── */
+    .results-meta {
+      max-width: 900px;
+      margin: 0 auto 12px;
+      padding: 0 24px;
+      font-size: .875rem;
+      color: var(--muted);
+    }
+
+    /* ── Job list ── */
+    .job-list {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 24px 48px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .job-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      text-decoration: none;
+      color: inherit;
+      box-shadow: var(--shadow);
+      transition: box-shadow .2s, transform .15s, border-color .15s;
+    }
+    .job-card:hover {
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-1px);
+      border-color: #c7d2fe;
+    }
+
+    .job-info { flex: 1; min-width: 0; }
+    .job-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .job-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: .825rem;
+      color: var(--muted);
+      align-items: center;
+    }
+    .job-meta span { display: flex; align-items: center; gap: 4px; }
+
+    .source-badge {
+      flex-shrink: 0;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: .75rem;
+      font-weight: 600;
+      letter-spacing: .02em;
+      color: #fff;
+    }
+    .source-badge.teamtailor { background: var(--tt-badge); }
+    .source-badge.homerun    { background: var(--hr-badge); }
+
+    .arrow-icon {
+      flex-shrink: 0;
+      color: var(--muted);
+      transition: color .15s, transform .15s;
+    }
+    .job-card:hover .arrow-icon { color: var(--accent); transform: translateX(3px); }
+
+    /* ── States ── */
+    .state {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 24px;
+      text-align: center;
+      color: var(--muted);
+    }
+    .state .icon { font-size: 2.5rem; margin-bottom: 12px; }
+    .state h2 { font-size: 1.1rem; margin-bottom: 6px; color: var(--text); }
+    .state p { font-size: .9rem; line-height: 1.6; }
+
+    #spinner { display: none; }
+    #spinner.visible { display: block; }
+
+    /* Spinner animation */
+    .spin-ring {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 16px;
+      font-size: .8rem;
+      color: #bbb;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      header h1 { font-size: 1.35rem; }
+      .job-card { flex-wrap: wrap; }
+      .source-badge { order: -1; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <h1>Lediga tjänster</h1>
+    <p class="subtitle">Alla öppna positioner samlade på ett ställe</p>
+  </div>
+</header>
+
+<div class="controls">
+  <div class="search-wrap">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    <input id="search" type="search" placeholder="Sök tjänst, avdelning, ort…" autocomplete="off">
+  </div>
+  <button class="filter-btn active" data-source="all">Alla</button>
+  <button class="filter-btn" data-source="Teamtailor">Teamtailor</button>
+  <button class="filter-btn" data-source="Homerun">Homerun</button>
+</div>
+
+<div class="results-meta" id="results-meta"></div>
+
+<div id="spinner" class="state">
+  <div class="spin-ring"></div>
+  <p>Hämtar tjänster…</p>
+</div>
+
+<div id="error-msg" class="state" style="display:none">
+  <div class="icon">⚠️</div>
+  <h2>Kunde inte hämta tjänster</h2>
+  <p id="error-text"></p>
+</div>
+
+<div id="empty-msg" class="state" style="display:none">
+  <div class="icon">🔍</div>
+  <h2>Inga tjänster hittades</h2>
+  <p>Prova ett annat sökord eller ta bort filtret.</p>
+</div>
+
+<div class="job-list" id="job-list"></div>
+
+<footer id="footer"></footer>
+
+<script>
+  const jobListEl   = document.getElementById('job-list');
+  const searchEl    = document.getElementById('search');
+  const resultsEl   = document.getElementById('results-meta');
+  const spinnerEl   = document.getElementById('spinner');
+  const errorEl     = document.getElementById('error-msg');
+  const errorTextEl = document.getElementById('error-text');
+  const emptyEl     = document.getElementById('empty-msg');
+  const footerEl    = document.getElementById('footer');
+
+  let allJobs = [];
+  let activeSource = 'all';
+
+  // ── Fetch data ─────────────────────────────────────────────────
+  async function loadJobs() {
+    spinnerEl.classList.add('visible');
+    try {
+      const resp = await fetch('./jobs.json', { cache: 'no-cache' });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const data = await resp.json();
+
+      allJobs = data.jobs || [];
+
+      if (data.updated_at) {
+        const d = new Date(data.updated_at);
+        footerEl.textContent = `Senast uppdaterad: ${d.toLocaleString('sv-SE')}`;
+      }
+
+      if (data.errors?.length) {
+        console.warn('API errors:', data.errors);
+      }
+
+      render();
+    } catch (err) {
+      spinnerEl.classList.remove('visible');
+      errorEl.style.display = 'block';
+      errorTextEl.textContent = err.message;
+    } finally {
+      spinnerEl.classList.remove('visible');
+    }
+  }
+
+  // ── Render ─────────────────────────────────────────────────────
+  function render() {
+    const q = searchEl.value.trim().toLowerCase();
+
+    const filtered = allJobs.filter(job => {
+      const matchSource = activeSource === 'all' || job.source === activeSource;
+      if (!matchSource) return false;
+      if (!q) return true;
+      return (
+        job.title.toLowerCase().includes(q) ||
+        (job.department || '').toLowerCase().includes(q) ||
+        (job.location || '').toLowerCase().includes(q)
+      );
+    });
+
+    jobListEl.innerHTML = '';
+    emptyEl.style.display = 'none';
+
+    if (filtered.length === 0) {
+      emptyEl.style.display = 'block';
+      resultsEl.textContent = '';
+      return;
+    }
+
+    const total = allJobs.length;
+    resultsEl.textContent =
+      filtered.length === total
+        ? `${total} lediga tjänster`
+        : `${filtered.length} av ${total} tjänster`;
+
+    filtered.forEach(job => {
+      const a = document.createElement('a');
+      a.className = 'job-card';
+      a.href = job.url || '#';
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+
+      const sourceClass = job.source === 'Teamtailor' ? 'teamtailor' : 'homerun';
+
+      const metaParts = [];
+      if (job.department) metaParts.push(`
+        <span>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+          </svg>
+          ${escHtml(job.department)}
+        </span>`);
+      if (job.location) metaParts.push(`
+        <span>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+          </svg>
+          ${escHtml(job.location)}
+        </span>`);
+
+      a.innerHTML = `
+        <div class="job-info">
+          <div class="job-title">${escHtml(job.title)}</div>
+          ${metaParts.length ? `<div class="job-meta">${metaParts.join('')}</div>` : ''}
+        </div>
+        <span class="source-badge ${sourceClass}">${escHtml(job.source)}</span>
+        <svg class="arrow-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+        </svg>`;
+
+      jobListEl.appendChild(a);
+    });
+  }
+
+  function escHtml(str) {
+    return String(str ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  // ── Events ─────────────────────────────────────────────────────
+  searchEl.addEventListener('input', render);
+
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeSource = btn.dataset.source;
+      render();
+    });
+  });
+
+  loadJobs();
+</script>
+</body>
+</html>
