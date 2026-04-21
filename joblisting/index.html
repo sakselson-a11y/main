@@ -117,21 +117,60 @@
       color: var(--muted);
     }
 
-    /* ── Job list ── */
+    /* ── Grouping ── */
     .job-list {
       max-width: 900px;
       margin: 0 auto;
       padding: 0 24px 48px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
     }
 
+    .country-section { margin-bottom: 36px; }
+
+    .country-heading {
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 0 0 10px;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 16px;
+    }
+
+    .city-section { margin-bottom: 20px; }
+
+    .city-heading {
+      font-size: .85rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .city-heading::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .city-jobs {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-left: 14px;
+    }
+
+    /* ── Job card ── */
     .job-card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 20px 24px;
+      padding: 16px 20px;
       display: flex;
       align-items: center;
       gap: 16px;
@@ -148,9 +187,9 @@
 
     .job-info { flex: 1; min-width: 0; }
     .job-title {
-      font-size: 1rem;
+      font-size: .95rem;
       font-weight: 600;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -158,8 +197,8 @@
     .job-meta {
       display: flex;
       flex-wrap: wrap;
-      gap: 12px;
-      font-size: .825rem;
+      gap: 10px;
+      font-size: .8rem;
       color: var(--muted);
       align-items: center;
     }
@@ -167,9 +206,9 @@
 
     .source-badge {
       flex-shrink: 0;
-      padding: 4px 10px;
+      padding: 3px 9px;
       border-radius: 20px;
-      font-size: .75rem;
+      font-size: .7rem;
       font-weight: 600;
       letter-spacing: .02em;
       color: #fff;
@@ -313,18 +352,107 @@
     }
   }
 
+  // ── Country code → display name ────────────────────────────────
+  const COUNTRY_NAMES = {
+    AF:'Afghanistan',AL:'Albania',DZ:'Algeria',AD:'Andorra',AO:'Angola',
+    AR:'Argentina',AM:'Armenia',AU:'Australia',AT:'Austria',AZ:'Azerbaijan',
+    BE:'Belgium',BG:'Bulgaria',BA:'Bosnia and Herzegovina',BR:'Brazil',
+    CA:'Canada',CL:'Chile',CN:'China',CO:'Colombia',HR:'Croatia',CZ:'Czech Republic',
+    DK:'Denmark',EG:'Egypt',EE:'Estonia',FI:'Finland',FR:'France',
+    GE:'Georgia',DE:'Germany',GH:'Ghana',GR:'Greece',HU:'Hungary',
+    IS:'Iceland',IN:'India',ID:'Indonesia',IE:'Ireland',IL:'Israel',
+    IT:'Italy',JP:'Japan',KZ:'Kazakhstan',KE:'Kenya',LV:'Latvia',
+    LT:'Lithuania',LU:'Luxembourg',MY:'Malaysia',MT:'Malta',MX:'Mexico',
+    MD:'Moldova',ME:'Montenegro',MA:'Morocco',NL:'Netherlands',NZ:'New Zealand',
+    MK:'North Macedonia',NO:'Norway',PK:'Pakistan',PL:'Poland',PT:'Portugal',
+    RO:'Romania',RS:'Serbia',SG:'Singapore',SK:'Slovakia',SI:'Slovenia',
+    ZA:'South Africa',KR:'South Korea',ES:'Spain',SE:'Sweden',
+    CH:'Switzerland',TW:'Taiwan',TH:'Thailand',TR:'Turkey',UA:'Ukraine',
+    AE:'United Arab Emirates',GB:'United Kingdom',US:'United States',UZ:'Uzbekistan',
+    VN:'Vietnam',
+  };
+
+  function parseLocation(loc) {
+    if (!loc) return { city: '', country: '' };
+    const parts = loc.split(',').map(s => s.trim()).filter(Boolean);
+    if (parts.length >= 2) {
+      const code  = parts[parts.length - 1].toUpperCase();
+      const country = COUNTRY_NAMES[code] || parts[parts.length - 1];
+      const city    = parts.slice(0, parts.length - 1).join(', ');
+      return { city, country };
+    }
+    // single value — check if it's a known country code
+    const code = parts[0].toUpperCase();
+    if (COUNTRY_NAMES[code]) return { city: '', country: COUNTRY_NAMES[code] };
+    return { city: parts[0], country: '' };
+  }
+
+  function groupJobs(jobs) {
+    // Returns { countryName: { cityName: [jobs] } }, sorted alphabetically
+    // Sweden always first if present
+    const map = {};
+    for (const job of jobs) {
+      const { city, country } = parseLocation(job.location);
+      const c = country || 'Other';
+      const k = city    || 'Unknown location';
+      (map[c] ??= {})[k] ??= [];
+      map[c][k].push(job);
+    }
+    const sorted = Object.keys(map).sort((a, b) => {
+      if (a === 'Sweden')  return -1;
+      if (b === 'Sweden')  return  1;
+      if (a === 'Other')   return  1;
+      if (b === 'Other')   return -1;
+      return a.localeCompare(b);
+    });
+    const result = {};
+    for (const country of sorted) {
+      result[country] = Object.fromEntries(
+        Object.entries(map[country]).sort(([a], [b]) => a.localeCompare(b))
+      );
+    }
+    return result;
+  }
+
+  function makeJobCard(job) {
+    const a = document.createElement('a');
+    a.className = 'job-card';
+    a.href = job.url || '#';
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+
+    const sourceClass = job.source === 'Teamtailor' ? 'teamtailor' : 'homerun';
+    const metaParts = [];
+    if (job.department) metaParts.push(`
+      <span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+        </svg>${escHtml(job.department)}
+      </span>`);
+
+    a.innerHTML = `
+      <div class="job-info">
+        <div class="job-title">${escHtml(job.title)}</div>
+        ${metaParts.length ? `<div class="job-meta">${metaParts.join('')}</div>` : ''}
+      </div>
+      <span class="source-badge ${sourceClass}">${escHtml(job.source)}</span>
+      <svg class="arrow-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+      </svg>`;
+    return a;
+  }
+
   // ── Render ─────────────────────────────────────────────────────
   function render() {
     const q = searchEl.value.trim().toLowerCase();
 
     const filtered = allJobs.filter(job => {
-      const matchSource = activeSource === 'all' || job.source === activeSource;
-      if (!matchSource) return false;
+      if (activeSource !== 'all' && job.source !== activeSource) return false;
       if (!q) return true;
       return (
         job.title.toLowerCase().includes(q) ||
         (job.department || '').toLowerCase().includes(q) ||
-        (job.location || '').toLowerCase().includes(q)
+        (job.location   || '').toLowerCase().includes(q)
       );
     });
 
@@ -343,43 +471,28 @@
         ? `${total} lediga tjänster`
         : `${filtered.length} av ${total} tjänster`;
 
-    filtered.forEach(job => {
-      const a = document.createElement('a');
-      a.className = 'job-card';
-      a.href = job.url || '#';
-      a.target = '_blank';
-      a.rel = 'noopener noreferrer';
+    const grouped = groupJobs(filtered);
 
-      const sourceClass = job.source === 'Teamtailor' ? 'teamtailor' : 'homerun';
+    for (const [country, cities] of Object.entries(grouped)) {
+      const countryEl = document.createElement('div');
+      countryEl.className = 'country-section';
+      countryEl.innerHTML = `<div class="country-heading">${escHtml(country)}</div>`;
 
-      const metaParts = [];
-      if (job.department) metaParts.push(`
-        <span>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
-          </svg>
-          ${escHtml(job.department)}
-        </span>`);
-      if (job.location) metaParts.push(`
-        <span>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
-          </svg>
-          ${escHtml(job.location)}
-        </span>`);
+      for (const [city, jobs] of Object.entries(cities)) {
+        const cityEl = document.createElement('div');
+        cityEl.className = 'city-section';
+        cityEl.innerHTML = `<div class="city-heading">${escHtml(city)}</div>`;
 
-      a.innerHTML = `
-        <div class="job-info">
-          <div class="job-title">${escHtml(job.title)}</div>
-          ${metaParts.length ? `<div class="job-meta">${metaParts.join('')}</div>` : ''}
-        </div>
-        <span class="source-badge ${sourceClass}">${escHtml(job.source)}</span>
-        <svg class="arrow-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
-        </svg>`;
+        const cityJobsEl = document.createElement('div');
+        cityJobsEl.className = 'city-jobs';
+        jobs.forEach(job => cityJobsEl.appendChild(makeJobCard(job)));
 
-      jobListEl.appendChild(a);
-    });
+        cityEl.appendChild(cityJobsEl);
+        countryEl.appendChild(cityEl);
+      }
+
+      jobListEl.appendChild(countryEl);
+    }
   }
 
   function escHtml(str) {
