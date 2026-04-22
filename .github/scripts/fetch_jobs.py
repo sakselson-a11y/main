@@ -201,7 +201,7 @@ def fetch_homerun(api_key: str) -> tuple[list[dict], dict]:
         resp = requests.get(
             working_url,
             headers=working_headers,
-            params={"page": page, "per_page": 100, "include": "location,department"},
+            params={"page": page, "per_page": 100},
             timeout=15,
         )
         resp.raise_for_status()
