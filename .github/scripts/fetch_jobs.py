@@ -51,17 +51,19 @@ def _extract_job_posting(data: dict | list) -> dict | None:
     return None
 
 
-def scrape_location_from_job_page(job_url: str) -> str:
-    """Fetch a Homerun job page and extract location from JSON-LD or HTML patterns."""
+def scrape_job_page(job_url: str) -> tuple[str, str]:
+    """Fetch a Homerun job page and return (location, department)."""
     if not job_url:
-        return ""
+        return "", ""
     try:
         resp = requests.get(job_url, headers=SCRAPE_HEADERS, timeout=15)
         if not resp.ok:
             print(f"  scrape {job_url} → {resp.status_code}", file=sys.stderr)
-            return ""
+            return "", ""
 
         html = resp.text
+        location   = ""
+        department = ""
 
         # 1. JSON-LD blocks (handles @graph, nested arrays, plain JobPosting)
         ld_pattern = r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>'
@@ -72,59 +74,101 @@ def scrape_location_from_job_page(job_url: str) -> str:
                 continue
             if not posting:
                 continue
-            loc = posting.get("jobLocation") or {}
-            if isinstance(loc, list):
-                loc = loc[0] if loc else {}
-            addr = loc.get("address") or {}
-            city    = addr.get("addressLocality", "")
-            country = addr.get("addressCountry", "")
-            result  = ", ".join(filter(None, [city, country]))
-            if result:
-                print(f"  scraped via JSON-LD: {result}", file=sys.stderr)
-                return result
+
+            if not location:
+                loc = posting.get("jobLocation") or {}
+                if isinstance(loc, list):
+                    loc = loc[0] if loc else {}
+                addr    = loc.get("address") or {}
+                city    = addr.get("addressLocality", "")
+                country = addr.get("addressCountry", "")
+                location = ", ".join(filter(None, [city, country]))
+                if location:
+                    print(f"  scraped location via JSON-LD: {location}", file=sys.stderr)
+
+            if not department:
+                cat = posting.get("occupationalCategory") or ""
+                if isinstance(cat, list):
+                    cat = cat[0] if cat else ""
+                department = str(cat).strip()
+                if department:
+                    print(f"  scraped department via JSON-LD: {department}", file=sys.stderr)
+
+            if location and department:
+                return location, department
 
         # 2. Bare JSON properties anywhere in the page
-        m_city = re.search(r'"addressLocality"\s*:\s*"([^"]+)"', html)
-        if m_city:
-            city = m_city.group(1)
-            m_country = re.search(r'"addressCountry"\s*:\s*"([^"]+)"', html)
-            country = m_country.group(1) if m_country else ""
-            result = ", ".join(filter(None, [city, country]))
-            if result:
-                print(f"  scraped via regex: {result}", file=sys.stderr)
-                return result
+        if not location:
+            m_city = re.search(r'"addressLocality"\s*:\s*"([^"]+)"', html)
+            if m_city:
+                city = m_city.group(1)
+                m_country = re.search(r'"addressCountry"\s*:\s*"([^"]+)"', html)
+                country = m_country.group(1) if m_country else ""
+                location = ", ".join(filter(None, [city, country]))
+                if location:
+                    print(f"  scraped location via regex: {location}", file=sys.stderr)
 
-        # 3. Meta tags (og:description, name="location", etc.)
-        for pattern in [
-            r'<meta[^>]+name=["\']location["\'][^>]+content=["\']([^"\']+)["\']',
-            r'<meta[^>]+property=["\']og:location["\'][^>]+content=["\']([^"\']+)["\']',
-            r'<meta[^>]+content=["\']([^"\']+)["\'][^>]+name=["\']location["\']',
-        ]:
-            m = re.search(pattern, html, re.IGNORECASE)
-            if m:
-                result = m.group(1).strip()
-                if result:
-                    print(f"  scraped via meta: {result}", file=sys.stderr)
-                    return result
+        if not department:
+            m_dept = re.search(r'"occupationalCategory"\s*:\s*"([^"]+)"', html)
+            if m_dept:
+                department = m_dept.group(1).strip()
+                if department:
+                    print(f"  scraped department via regex: {department}", file=sys.stderr)
 
-        # 4. Common Homerun HTML patterns for location text
-        for pattern in [
-            r'class=["\'][^"\']*location[^"\']*["\'][^>]*>\s*<[^>]+>\s*([^<]{3,60})</[^>]+>',
-            r'class=["\'][^"\']*location[^"\']*["\'][^>]*>\s*([^<]{3,60})</',
-            r'data-location=["\']([^"\']+)["\']',
-        ]:
-            m = re.search(pattern, html, re.IGNORECASE)
-            if m:
-                result = m.group(1).strip()
-                if result and len(result) < 60:
-                    print(f"  scraped via HTML pattern: {result}", file=sys.stderr)
-                    return result
+        # 3. Meta tags for location
+        if not location:
+            for pattern in [
+                r'<meta[^>]+name=["\']location["\'][^>]+content=["\']([^"\']+)["\']',
+                r'<meta[^>]+property=["\']og:location["\'][^>]+content=["\']([^"\']+)["\']',
+                r'<meta[^>]+content=["\']([^"\']+)["\'][^>]+name=["\']location["\']',
+            ]:
+                m = re.search(pattern, html, re.IGNORECASE)
+                if m:
+                    location = m.group(1).strip()
+                    if location:
+                        print(f"  scraped location via meta: {location}", file=sys.stderr)
+                        break
 
-        print(f"  no location found for {job_url}", file=sys.stderr)
+        # 4. Homerun HTML patterns for location
+        if not location:
+            for pattern in [
+                r'class=["\'][^"\']*location[^"\']*["\'][^>]*>\s*<[^>]+>\s*([^<]{3,60})</[^>]+>',
+                r'class=["\'][^"\']*location[^"\']*["\'][^>]*>\s*([^<]{3,60})</',
+                r'data-location=["\']([^"\']+)["\']',
+            ]:
+                m = re.search(pattern, html, re.IGNORECASE)
+                if m:
+                    result = m.group(1).strip()
+                    if result and len(result) < 60:
+                        location = result
+                        print(f"  scraped location via HTML pattern: {location}", file=sys.stderr)
+                        break
+
+        # 5. Homerun HTML patterns for department
+        if not department:
+            for pattern in [
+                r'class=["\'][^"\']*department[^"\']*["\'][^>]*>\s*<[^>]+>\s*([^<]{2,60})</[^>]+>',
+                r'class=["\'][^"\']*department[^"\']*["\'][^>]*>\s*([^<]{2,60})</',
+                r'class=["\'][^"\']*team[^"\']*["\'][^>]*>\s*([^<]{2,60})</',
+                r'class=["\'][^"\']*category[^"\']*["\'][^>]*>\s*([^<]{2,60})</',
+                r'data-department=["\']([^"\']+)["\']',
+                r'data-team=["\']([^"\']+)["\']',
+            ]:
+                m = re.search(pattern, html, re.IGNORECASE)
+                if m:
+                    result = m.group(1).strip()
+                    if result and len(result) < 60:
+                        department = result
+                        print(f"  scraped department via HTML pattern: {department}", file=sys.stderr)
+                        break
+
+        if not location:
+            print(f"  no location found for {job_url}", file=sys.stderr)
 
     except Exception as exc:
         print(f"  scrape error for {job_url}: {exc}", file=sys.stderr)
-    return ""
+        return "", ""
+    return location, department
 
 TEAMTAILOR_BASE = "https://api.teamtailor.com/v1"
 HOMERUN_BASE = "https://api.homerun.co/v2"
@@ -386,16 +430,16 @@ def fetch_homerun(api_key: str, overrides: dict) -> tuple[list[dict], dict]:
                 or ""
             )
 
-            # API returns no location — scrape it from the job page
-            raw_loc = _correct_location(
-                _parse_location(job.get("location") or job.get("city") or job.get("office"))
-                or overrides.get(job.get("id", ""))
-                or scrape_location_from_job_page(raw_url)
-            )
+            # Try API fields first; fall back to scraping the job page
+            api_loc  = _parse_location(job.get("location") or job.get("city") or job.get("office"))
+            api_dept = _parse_department(job.get("department") or job.get("team") or job.get("category"))
 
-            raw_dept = _parse_department(
-                job.get("department") or job.get("team") or job.get("category")
-            )
+            scraped_loc, scraped_dept = ("", "")
+            if not api_loc or not api_dept:
+                scraped_loc, scraped_dept = scrape_job_page(raw_url)
+
+            raw_loc  = _correct_location(api_loc or overrides.get(job.get("id", "")) or scraped_loc)
+            raw_dept = api_dept or scraped_dept
 
             jobs.append({
                 "id":           f"hr-{job.get('id', '')}",
