@@ -268,7 +268,7 @@ def _parse_department(val) -> str:
     return ""
 
 
-def fetch_homerun(api_key: str) -> tuple[list[dict], dict]:
+def fetch_homerun(api_key: str, overrides: dict) -> tuple[list[dict], dict]:
     bearer_headers = {"Authorization": f"Bearer {api_key}", "Accept": "application/json"}
     token_headers  = {"Authorization": f"Token {api_key}",  "Accept": "application/json"}
     no_headers     = {"Accept": "application/json", "User-Agent": "Mozilla/5.0"}
@@ -381,6 +381,7 @@ def fetch_homerun(api_key: str) -> tuple[list[dict], dict]:
             # API returns no location — scrape it from the job page
             raw_loc = (
                 _parse_location(job.get("location") or job.get("city") or job.get("office"))
+                or overrides.get(job.get("id", ""))
                 or scrape_location_from_job_page(raw_url)
             )
 
@@ -405,9 +406,19 @@ def fetch_homerun(api_key: str) -> tuple[list[dict], dict]:
     return jobs, {"list_item": raw_first, "detail_item": raw_first_detail}
 
 
+def load_overrides() -> dict:
+    path = os.path.join(os.path.dirname(__file__), "../../joblisting/location_overrides.json")
+    try:
+        with open(path, encoding="utf-8") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {}
+
+
 def main() -> None:
-    tt_key = os.environ.get("TEAMTAILOR_API_KEY", "").strip()
-    hr_key = os.environ.get("HOMERUN_API_KEY", "").strip()
+    tt_key    = os.environ.get("TEAMTAILOR_API_KEY", "").strip()
+    hr_key    = os.environ.get("HOMERUN_API_KEY", "").strip()
+    overrides = load_overrides()
 
     all_jobs: list[dict] = []
     errors: list[str] = []
@@ -428,7 +439,7 @@ def main() -> None:
 
     if hr_key:
         try:
-            hr_jobs, hr_raw = fetch_homerun(hr_key)
+            hr_jobs, hr_raw = fetch_homerun(hr_key, overrides)
             all_jobs.extend(hr_jobs)
             debug["homerun_first_raw"] = hr_raw
             print(f"Homerun: {len(hr_jobs)} jobs fetched")
