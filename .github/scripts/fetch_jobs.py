@@ -109,7 +109,10 @@ def scrape_location_from_job_page(job_url: str) -> str:
                     print(f"  scraped via HTML pattern: {result}", file=sys.stderr)
                     return result
 
+        # Dump a slice of HTML so we can see the structure in Actions logs
         print(f"  no location found for {job_url}", file=sys.stderr)
+        snippet = re.sub(r'\s+', ' ', html)[:3000]
+        print(f"  HTML snippet: {snippet}", file=sys.stderr)
 
     except Exception as exc:
         print(f"  scrape error for {job_url}: {exc}", file=sys.stderr)
