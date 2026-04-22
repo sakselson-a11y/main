@@ -15,8 +15,6 @@
       --muted: #6b7280;
       --accent: #1d4ed8;
       --accent-hover: #1e40af;
-      --tt-badge: #4f46e5;
-      --hr-badge: #0891b2;
       --radius: 10px;
       --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
       --shadow-hover: 0 4px 12px rgba(0,0,0,.12);
@@ -204,18 +202,6 @@
     }
     .job-meta span { display: flex; align-items: center; gap: 4px; }
 
-    .source-badge {
-      flex-shrink: 0;
-      padding: 3px 9px;
-      border-radius: 20px;
-      font-size: .7rem;
-      font-weight: 600;
-      letter-spacing: .02em;
-      color: #fff;
-    }
-    .source-badge.teamtailor { background: var(--tt-badge); }
-    .source-badge.homerun    { background: var(--hr-badge); }
-
     .arrow-icon {
       flex-shrink: 0;
       color: var(--muted);
@@ -262,7 +248,6 @@
     @media (max-width: 600px) {
       header h1 { font-size: 1.35rem; }
       .job-card { flex-wrap: wrap; }
-      .source-badge { order: -1; }
     }
   </style>
 </head>
@@ -421,7 +406,6 @@
     a.target = '_blank';
     a.rel = 'noopener noreferrer';
 
-    const sourceClass = job.source === 'Teamtailor' ? 'teamtailor' : 'homerun';
     const metaParts = [];
     if (job.department) metaParts.push(`
       <span>
@@ -435,7 +419,6 @@
         <div class="job-title">${escHtml(job.title)}</div>
         ${metaParts.length ? `<div class="job-meta">${metaParts.join('')}</div>` : ''}
       </div>
-      <span class="source-badge ${sourceClass}">${escHtml(job.source)}</span>
       <svg class="arrow-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
       </svg>`;
