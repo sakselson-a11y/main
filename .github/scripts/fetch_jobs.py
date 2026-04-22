@@ -5,10 +5,63 @@ a single normalized jobs.json consumed by joblisting/index.html.
 
 import json
 import os
+import re
 import sys
 from datetime import datetime, timezone
 
 import requests
+
+SCRAPE_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/124.0.0.0 Safari/537.36"
+    ),
+    "Accept": "text/html,application/xhtml+xml",
+}
+
+
+def scrape_location_from_job_page(job_url: str) -> str:
+    """Fetch a Homerun job page and extract location from JSON-LD structured data."""
+    if not job_url:
+        return ""
+    try:
+        resp = requests.get(job_url, headers=SCRAPE_HEADERS, timeout=15)
+        if not resp.ok:
+            print(f"  scrape {job_url} → {resp.status_code}", file=sys.stderr)
+            return ""
+
+        # Find JSON-LD blocks in the page
+        pattern = r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>'
+        for raw in re.findall(pattern, resp.text, re.DOTALL | re.IGNORECASE):
+            try:
+                data = json.loads(raw.strip())
+            except ValueError:
+                continue
+            items = data if isinstance(data, list) else [data]
+            for item in items:
+                if item.get("@type") == "JobPosting":
+                    loc = item.get("jobLocation") or {}
+                    if isinstance(loc, list):
+                        loc = loc[0] if loc else {}
+                    addr = loc.get("address") or {}
+                    city    = addr.get("addressLocality", "")
+                    country = addr.get("addressCountry", "")
+                    result  = ", ".join(filter(None, [city, country]))
+                    if result:
+                        return result
+
+        # Fallback: look for og:description or visible location text
+        m = re.search(r'"addressLocality"\s*:\s*"([^"]+)"', resp.text)
+        if m:
+            city = m.group(1)
+            m2 = re.search(r'"addressCountry"\s*:\s*"([^"]+)"', resp.text)
+            country = m2.group(1) if m2 else ""
+            return ", ".join(filter(None, [city, country]))
+
+    except Exception as exc:
+        print(f"  scrape error for {job_url}: {exc}", file=sys.stderr)
+    return ""
 
 TEAMTAILOR_BASE = "https://api.teamtailor.com/v1"
 HOMERUN_BASE = "https://api.homerun.co/v2"
@@ -260,32 +313,32 @@ def fetch_homerun(api_key: str) -> tuple[list[dict], dict]:
             break
 
         for job in items:
-            raw_loc  = (
-                job.get("location")
-                or job.get("city")
-                or job.get("office")
-                or job.get("location_name")
-            )
-            raw_dept = (
-                job.get("department")
-                or job.get("team")
-                or job.get("category")
-            )
-            raw_url  = (
-                job.get("url")
+            raw_url = (
+                job.get("job_url")
+                or job.get("url")
                 or job.get("application_url")
-                or job.get("job_url")
                 or job.get("public_url")
                 or job.get("link")
                 or job.get("career_page_url")
+                or ""
+            )
+
+            # API returns no location — scrape it from the job page
+            raw_loc = (
+                _parse_location(job.get("location") or job.get("city") or job.get("office"))
+                or scrape_location_from_job_page(raw_url)
+            )
+
+            raw_dept = _parse_department(
+                job.get("department") or job.get("team") or job.get("category")
             )
 
             jobs.append({
                 "id":           f"hr-{job.get('id', '')}",
                 "title":        job.get("title") or job.get("name", ""),
-                "department":   _parse_department(raw_dept),
-                "location":     _parse_location(raw_loc),
-                "url":          raw_url or "",
+                "department":   raw_dept,
+                "location":     raw_loc,
+                "url":          raw_url,
                 "source":       "Homerun",
                 "published_at": job.get("published_at") or job.get("created_at", ""),
             })
