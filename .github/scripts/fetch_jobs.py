@@ -163,8 +163,16 @@ def _parse_department(val) -> str:
 def fetch_homerun(api_key: str) -> tuple[list[dict], dict]:
     bearer_headers = {"Authorization": f"Bearer {api_key}", "Accept": "application/json"}
     token_headers  = {"Authorization": f"Token {api_key}",  "Accept": "application/json"}
+    no_headers     = {"Accept": "application/json", "User-Agent": "Mozilla/5.0"}
 
-    endpoints = [
+    # Try public career-page JSON feeds first — these include location data
+    # Extract company slug from the API key prefix or try known slug "varo"
+    public_feeds = [
+        ("https://varo.homerun.co/jobs.json",      no_headers),
+        ("https://varo.homerun.co/vacancies.json",  no_headers),
+        ("https://varo.homerun.co/feed.json",       no_headers),
+    ]
+    authenticated = [
         ("https://api.homerun.co/v2/jobs",      bearer_headers),
         ("https://api.homerun.co/v1/jobs",       bearer_headers),
         ("https://api.homerun.co/v2/vacancies",  bearer_headers),
@@ -175,7 +183,7 @@ def fetch_homerun(api_key: str) -> tuple[list[dict], dict]:
 
     working_url     = None
     working_headers = None
-    for endpoint, hdrs in endpoints:
+    for endpoint, hdrs in public_feeds + authenticated:
         try:
             resp = requests.get(endpoint, headers=hdrs, timeout=15)
             print(f"Homerun {endpoint} → {resp.status_code}", file=sys.stderr)
