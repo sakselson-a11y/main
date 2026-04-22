@@ -36,14 +36,27 @@ def fetch_teamtailor(api_key: str) -> tuple[list[dict], dict]:
     if working_headers is None:
         raise RuntimeError("All Teamtailor auth attempts failed — check API key")
 
-    # Step 2: try with include + pagination params
-    full_params = {"include": "department,locations", "page[size]": 100}
-    resp = requests.get(first_url, headers=working_headers, params=full_params, timeout=15)
-    print(f"Teamtailor with include → {resp.status_code}", file=sys.stderr)
-    if resp.ok:
-        use_params: dict = full_params
+    # Step 2: find the best param combo that includes location/dept data
+    param_candidates = [
+        {"include": "department,locations"},                              # no page size
+        {"include": "locations"},                                         # location only
+        {"include": "department,locations", "page[size]": 30},           # smaller page
+        {"include": "department,locations", "page[size]": 100},          # original
+        {},                                                               # bare fallback
+    ]
+    use_params: dict = {}
+    for p in param_candidates:
+        r = requests.get(first_url, headers=working_headers, params=p, timeout=15)
+        print(f"Teamtailor params {list(p.keys())} → {r.status_code}", file=sys.stderr)
+        if r.ok:
+            use_params = p
+            # Check if included resources are actually present
+            has_included = bool(r.json().get("included"))
+            print(f"  has included={has_included}", file=sys.stderr)
+            if has_included or not p:
+                break
+            # Keep trying for a combo that returns included data
     else:
-        print(f"  include failed, fetching without: {resp.text[:300]}", file=sys.stderr)
         use_params = {}
 
     # Step 3: paginate and collect
@@ -164,6 +177,7 @@ def fetch_homerun(api_key: str) -> tuple[list[dict], dict]:
     # Paginate through all pages
     jobs: list[dict] = []
     raw_first: dict = {}
+    raw_first_detail: dict = {}
     page = 1
 
     while True:
@@ -176,13 +190,23 @@ def fetch_homerun(api_key: str) -> tuple[list[dict], dict]:
         resp.raise_for_status()
         body = resp.json()
 
-        # Capture first raw item for debug output
+        # Capture first raw item + fetch its detail endpoint for debug
         if page == 1:
             raw_items_debug = body if isinstance(body, list) else (
                 body.get("data") or body.get("jobs") or body.get("vacancies") or []
             )
             if raw_items_debug:
                 raw_first = raw_items_debug[0]
+                # Try to fetch individual job detail to see full field set
+                first_id = raw_first.get("id", "")
+                if first_id:
+                    dr = requests.get(
+                        f"{working_url}/{first_id}",
+                        headers=working_headers, timeout=15,
+                    )
+                    print(f"Homerun detail/{first_id} → {dr.status_code}", file=sys.stderr)
+                    if dr.ok:
+                        raw_first_detail = dr.json()
 
         if isinstance(body, list):
             items    = body
@@ -239,7 +263,7 @@ def fetch_homerun(api_key: str) -> tuple[list[dict], dict]:
             break
         page += 1
 
-    return jobs, raw_first
+    return jobs, {"list_item": raw_first, "detail_item": raw_first_detail}
 
 
 def main() -> None:
