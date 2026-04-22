@@ -77,30 +77,47 @@ def fetch_teamtailor(api_key: str) -> tuple[list[dict], dict]:
 
         for job in body.get("data", []):
             if not raw_first:
-                raw_first = job  # save for debug
+                raw_first = job
 
             attrs = job.get("attributes", {})
             rels  = job.get("relationships", {})
             links = job.get("links", {})
 
+            # Department — try included first, then fetch directly
             dept = ""
             dept_ref = (rels.get("department") or {}).get("data") or {}
             if dept_ref:
                 dept_item = included.get(f"departments/{dept_ref.get('id')}", {})
                 dept = dept_item.get("attributes", {}).get("name", "")
             if not dept:
-                dept = attrs.get("department-name", "")
+                dept_url = ((rels.get("department") or {}).get("links") or {}).get("related", "")
+                if dept_url:
+                    dr = requests.get(dept_url, headers=working_headers, timeout=10)
+                    if dr.ok:
+                        dd = dr.json().get("data") or {}
+                        dept = (dd.get("attributes") or {}).get("name", "")
 
+            # Location — try included first, then fetch directly
             location = ""
             loc_refs = (rels.get("locations") or {}).get("data") or []
             if loc_refs:
                 loc_item = included.get(f"locations/{loc_refs[0].get('id')}", {})
                 loc_attrs = loc_item.get("attributes", {})
-                city    = loc_attrs.get("city", "")
-                country = loc_attrs.get("country", "") or loc_attrs.get("country-code", "")
-                location = ", ".join(filter(None, [city, country]))
+                if loc_attrs:
+                    city    = loc_attrs.get("city", "")
+                    country = loc_attrs.get("country", "") or loc_attrs.get("country-code", "")
+                    location = ", ".join(filter(None, [city, country]))
             if not location:
-                location = attrs.get("location-name", "") or attrs.get("city", "")
+                loc_url = ((rels.get("locations") or {}).get("links") or {}).get("related", "")
+                if loc_url:
+                    lr = requests.get(loc_url, headers=working_headers, timeout=10)
+                    if lr.ok:
+                        ld = lr.json().get("data") or []
+                        if ld:
+                            la = (ld[0].get("attributes") or {}) if isinstance(ld, list) else (ld.get("attributes") or {})
+                            city    = la.get("city", "")
+                            country = la.get("country", "") or la.get("country-code", "")
+                            location = ", ".join(filter(None, [city, country]))
 
             jobs.append({
                 "id": f"tt-{job['id']}",
@@ -184,7 +201,7 @@ def fetch_homerun(api_key: str) -> tuple[list[dict], dict]:
         resp = requests.get(
             working_url,
             headers=working_headers,
-            params={"page": page, "per_page": 100},
+            params={"page": page, "per_page": 100, "include": "location,department"},
             timeout=15,
         )
         resp.raise_for_status()
