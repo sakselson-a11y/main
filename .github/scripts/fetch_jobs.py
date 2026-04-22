@@ -190,6 +190,12 @@ def fetch_homerun(api_key: str) -> tuple[list[dict], dict]:
             if not resp.ok:
                 print(f"  body: {resp.text[:300]}", file=sys.stderr)
                 continue
+            # Verify it's actually JSON before accepting
+            try:
+                resp.json()
+            except ValueError:
+                print(f"  not JSON, skipping", file=sys.stderr)
+                continue
             working_url     = endpoint
             working_headers = hdrs
             break
