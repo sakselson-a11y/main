@@ -1,12 +1,12 @@
 {
-  "updated_at": "2026-04-21T13:31:38.858583+00:00",
+  "updated_at": "2026-04-22T06:53:12.092449+00:00",
   "total": 25,
   "jobs": [
     {
       "id": "tt-7555646",
       "title": "Brandman",
-      "department": "",
-      "location": "",
+      "department": "Manufacturing (Production)",
+      "location": "Göteborg, Sweden",
       "url": "https://preemab.teamtailor.com/sv/jobs/7555646-brandman",
       "source": "Teamtailor",
       "published_at": "2026-04-13T14:02:09.861+02:00"
@@ -14,8 +14,8 @@
     {
       "id": "tt-7501286",
       "title": "Praktik: Produktionstekniker till VAROPreem hösten 2026",
-      "department": "",
-      "location": "",
+      "department": "Manufacturing (Production)",
+      "location": "Göteborg, Sweden",
       "url": "https://preemab.teamtailor.com/sv/jobs/7501286-praktik-produktionstekniker-till-varopreem-hosten-2026",
       "source": "Teamtailor",
       "published_at": "2026-04-01T12:30:10.430+02:00"
@@ -290,6 +290,10 @@
           "links": {
             "self": "https://api.teamtailor.com/v1/jobs/7555646/relationships/department",
             "related": "https://api.teamtailor.com/v1/jobs/7555646/department"
+          },
+          "data": {
+            "type": "departments",
+            "id": "272908"
           }
         },
         "role": {
@@ -308,7 +312,13 @@
           "links": {
             "self": "https://api.teamtailor.com/v1/jobs/7555646/relationships/locations",
             "related": "https://api.teamtailor.com/v1/jobs/7555646/locations"
-          }
+          },
+          "data": [
+            {
+              "type": "locations",
+              "id": "610691"
+            }
+          ]
         },
         "regions": {
           "links": {
@@ -385,20 +395,40 @@
       }
     },
     "homerun_first_raw": {
-      "id": "job_8laRxRyzX673z3RMZg74",
-      "application_form_url": "https://varo.homerun.co/open-application/apply",
-      "created_at": "2018-06-18T10:05:33.000000Z",
-      "job_url": "https://varo.homerun.co/open-application",
-      "share_image_url": "https://cdn.homerun.co/46458/9996faf1-1163-417b-abf0-a15973c2a2ef.png",
-      "status": "public",
-      "title": "Open application",
-      "total_candidate_count": null,
-      "type": "Full-time",
-      "description": "We're looking for a Open application at VAROPreem - Vacancies platform - Central Europe. Hiring with Homerun.",
-      "page_content": null,
-      "expires_at": null,
-      "is_remote": false,
-      "location_type": "on-site"
+      "list_item": {
+        "id": "job_8laRxRyzX673z3RMZg74",
+        "application_form_url": "https://varo.homerun.co/open-application/apply",
+        "created_at": "2018-06-18T10:05:33.000000Z",
+        "job_url": "https://varo.homerun.co/open-application",
+        "share_image_url": "https://cdn.homerun.co/46458/9996faf1-1163-417b-abf0-a15973c2a2ef.png",
+        "status": "public",
+        "title": "Open application",
+        "total_candidate_count": null,
+        "type": "Full-time",
+        "description": "We're looking for a Open application at VAROPreem - Vacancies platform - Central Europe. Hiring with Homerun.",
+        "page_content": null,
+        "expires_at": null,
+        "is_remote": false,
+        "location_type": "on-site"
+      },
+      "detail_item": {
+        "data": {
+          "id": "job_8laRxRyzX673z3RMZg74",
+          "application_form_url": "https://varo.homerun.co/open-application/apply",
+          "created_at": "2018-06-18T10:05:33.000000Z",
+          "job_url": "https://varo.homerun.co/open-application",
+          "share_image_url": "https://cdn.homerun.co/46458/9996faf1-1163-417b-abf0-a15973c2a2ef.png",
+          "status": "public",
+          "title": "Open application",
+          "total_candidate_count": null,
+          "type": "Full-time",
+          "description": "We're looking for a Open application at VAROPreem - Vacancies platform - Central Europe. Hiring with Homerun.",
+          "page_content": null,
+          "expires_at": null,
+          "is_remote": false,
+          "location_type": "on-site"
+        }
+      }
     }
   }
 }
