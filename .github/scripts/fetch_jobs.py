@@ -11,6 +11,17 @@ from datetime import datetime, timezone
 
 import requests
 
+LOCATION_CORRECTIONS = {
+    "Rotterdan": "Rotterdam",
+}
+
+
+def _correct_location(loc: str) -> str:
+    for wrong, right in LOCATION_CORRECTIONS.items():
+        loc = loc.replace(wrong, right)
+    return loc
+
+
 SCRAPE_HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -109,10 +120,7 @@ def scrape_location_from_job_page(job_url: str) -> str:
                     print(f"  scraped via HTML pattern: {result}", file=sys.stderr)
                     return result
 
-        # Dump a slice of HTML so we can see the structure in Actions logs
         print(f"  no location found for {job_url}", file=sys.stderr)
-        snippet = re.sub(r'\s+', ' ', html)[:3000]
-        print(f"  HTML snippet: {snippet}", file=sys.stderr)
 
     except Exception as exc:
         print(f"  scrape error for {job_url}: {exc}", file=sys.stderr)
@@ -379,7 +387,7 @@ def fetch_homerun(api_key: str, overrides: dict) -> tuple[list[dict], dict]:
             )
 
             # API returns no location — scrape it from the job page
-            raw_loc = (
+            raw_loc = _correct_location(
                 _parse_location(job.get("location") or job.get("city") or job.get("office"))
                 or overrides.get(job.get("id", ""))
                 or scrape_location_from_job_page(raw_url)
@@ -422,13 +430,11 @@ def main() -> None:
 
     all_jobs: list[dict] = []
     errors: list[str] = []
-    debug: dict = {}
 
     if tt_key:
         try:
-            tt_jobs, tt_raw = fetch_teamtailor(tt_key)
+            tt_jobs, _ = fetch_teamtailor(tt_key)
             all_jobs.extend(tt_jobs)
-            debug["teamtailor_first_raw"] = tt_raw
             print(f"Teamtailor: {len(tt_jobs)} jobs fetched")
         except Exception as exc:
             msg = f"Teamtailor fetch failed: {exc}"
@@ -439,9 +445,8 @@ def main() -> None:
 
     if hr_key:
         try:
-            hr_jobs, hr_raw = fetch_homerun(hr_key, overrides)
+            hr_jobs, _ = fetch_homerun(hr_key, overrides)
             all_jobs.extend(hr_jobs)
-            debug["homerun_first_raw"] = hr_raw
             print(f"Homerun: {len(hr_jobs)} jobs fetched")
         except Exception as exc:
             msg = f"Homerun fetch failed: {exc}"
@@ -455,7 +460,6 @@ def main() -> None:
         "total": len(all_jobs),
         "jobs": all_jobs,
         "errors": errors if errors else None,
-        "debug": debug,
     }
 
     out_path = "joblisting/jobs.json"
