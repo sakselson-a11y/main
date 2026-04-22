@@ -87,25 +87,6 @@
       box-shadow: 0 0 0 3px rgba(29,78,216,.12);
     }
 
-    .filter-btn {
-      padding: 10px 16px;
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-      background: var(--surface);
-      font-size: .875rem;
-      cursor: pointer;
-      transition: all .15s;
-      color: var(--muted);
-      font-weight: 500;
-      white-space: nowrap;
-    }
-    .filter-btn:hover { border-color: var(--accent); color: var(--accent); }
-    .filter-btn.active {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: #fff;
-    }
-
     /* ── Results count ── */
     .results-meta {
       max-width: 900px;
@@ -267,9 +248,6 @@
     </svg>
     <input id="search" type="search" placeholder="Sök tjänst, avdelning, ort…" autocomplete="off">
   </div>
-  <button class="filter-btn active" data-source="all">Alla</button>
-  <button class="filter-btn" data-source="Teamtailor">Teamtailor</button>
-  <button class="filter-btn" data-source="Homerun">Homerun</button>
 </div>
 
 <div class="results-meta" id="results-meta"></div>
@@ -306,7 +284,6 @@
   const footerEl    = document.getElementById('footer');
 
   let allJobs = [];
-  let activeSource = 'all';
 
   // ── Fetch data ─────────────────────────────────────────────────
   async function loadJobs() {
@@ -430,7 +407,6 @@
     const q = searchEl.value.trim().toLowerCase();
 
     const filtered = allJobs.filter(job => {
-      if (activeSource !== 'all' && job.source !== activeSource) return false;
       if (!q) return true;
       return (
         job.title.toLowerCase().includes(q) ||
@@ -488,15 +464,6 @@
 
   // ── Events ─────────────────────────────────────────────────────
   searchEl.addEventListener('input', render);
-
-  document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      activeSource = btn.dataset.source;
-      render();
-    });
-  });
 
   loadJobs();
 </script>

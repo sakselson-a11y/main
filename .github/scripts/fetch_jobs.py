@@ -320,7 +320,7 @@ def _parse_department(val) -> str:
     return ""
 
 
-def fetch_homerun(api_key: str, overrides: dict) -> tuple[list[dict], dict]:
+def fetch_homerun(api_key: str, overrides: dict, dept_overrides: dict | None = None) -> tuple[list[dict], dict]:
     bearer_headers = {"Authorization": f"Bearer {api_key}", "Accept": "application/json"}
     token_headers  = {"Authorization": f"Token {api_key}",  "Accept": "application/json"}
     no_headers     = {"Accept": "application/json", "User-Agent": "Mozilla/5.0"}
@@ -438,11 +438,12 @@ def fetch_homerun(api_key: str, overrides: dict) -> tuple[list[dict], dict]:
             if not api_loc or not api_dept:
                 scraped_loc, scraped_dept = scrape_job_page(raw_url)
 
-            raw_loc  = _correct_location(api_loc or overrides.get(job.get("id", "")) or scraped_loc)
-            raw_dept = api_dept or scraped_dept
+            job_id   = job.get("id", "")
+            raw_loc  = _correct_location(api_loc or overrides.get(job_id, "") or scraped_loc)
+            raw_dept = (dept_overrides or {}).get(job_id, "") or api_dept or scraped_dept
 
             jobs.append({
-                "id":           f"hr-{job.get('id', '')}",
+                "id":           f"hr-{job_id}",
                 "title":        job.get("title") or job.get("name", ""),
                 "department":   raw_dept,
                 "location":     raw_loc,
@@ -458,19 +459,28 @@ def fetch_homerun(api_key: str, overrides: dict) -> tuple[list[dict], dict]:
     return jobs, {"list_item": raw_first, "detail_item": raw_first_detail}
 
 
-def load_overrides() -> dict:
-    path = os.path.join(os.path.dirname(__file__), "../../joblisting/location_overrides.json")
+def _load_json_override(filename: str) -> dict:
+    path = os.path.join(os.path.dirname(__file__), f"../../joblisting/{filename}")
     try:
         with open(path, encoding="utf-8") as f:
-            return json.load(f)
+            return {k: v for k, v in json.load(f).items() if v}
     except FileNotFoundError:
         return {}
 
 
+def load_overrides() -> dict:
+    return _load_json_override("location_overrides.json")
+
+
+def load_dept_overrides() -> dict:
+    return _load_json_override("department_overrides.json")
+
+
 def main() -> None:
-    tt_key    = os.environ.get("TEAMTAILOR_API_KEY", "").strip()
-    hr_key    = os.environ.get("HOMERUN_API_KEY", "").strip()
-    overrides = load_overrides()
+    tt_key        = os.environ.get("TEAMTAILOR_API_KEY", "").strip()
+    hr_key        = os.environ.get("HOMERUN_API_KEY", "").strip()
+    overrides     = load_overrides()
+    dept_overrides = load_dept_overrides()
 
     all_jobs: list[dict] = []
     errors: list[str] = []
@@ -489,7 +499,7 @@ def main() -> None:
 
     if hr_key:
         try:
-            hr_jobs, _ = fetch_homerun(hr_key, overrides)
+            hr_jobs, _ = fetch_homerun(hr_key, overrides, dept_overrides)
             all_jobs.extend(hr_jobs)
             print(f"Homerun: {len(hr_jobs)} jobs fetched")
         except Exception as exc:
