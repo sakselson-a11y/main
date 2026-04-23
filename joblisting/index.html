@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="sv">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lediga tjänster</title>
+  <title>Open positions</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -215,8 +215,8 @@
 
 <header>
   <div class="header-inner">
-    <h1>Lediga tjänster</h1>
-    <p class="subtitle">Alla öppna positioner samlade på ett ställe</p>
+    <h1>Open positions</h1>
+    <p class="subtitle">All open positions in one place</p>
   </div>
 </header>
 
@@ -225,7 +225,7 @@
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
     </svg>
-    <input id="search" type="search" placeholder="Sök tjänst, avdelning, ort…" autocomplete="off">
+    <input id="search" type="search" placeholder="Search position, department, location…" autocomplete="off">
   </div>
 </div>
 
@@ -233,19 +233,19 @@
 
 <div id="spinner" class="state">
   <div class="spin-ring"></div>
-  <p>Hämtar tjänster…</p>
+  <p>Loading positions…</p>
 </div>
 
 <div id="error-msg" class="state" style="display:none">
   <div class="icon">⚠️</div>
-  <h2>Kunde inte hämta tjänster</h2>
+  <h2>Could not load positions</h2>
   <p id="error-text"></p>
 </div>
 
 <div id="empty-msg" class="state" style="display:none">
   <div class="icon">🔍</div>
-  <h2>Inga tjänster hittades</h2>
-  <p>Prova ett annat sökord eller ta bort filtret.</p>
+  <h2>No positions found</h2>
+  <p>Try a different search term.</p>
 </div>
 
 <div class="job-list" id="job-list"></div>
@@ -276,7 +276,7 @@
 
       if (data.updated_at) {
         const d = new Date(data.updated_at);
-        footerEl.textContent = `Senast uppdaterad: ${d.toLocaleString('sv-SE')}`;
+        footerEl.textContent = `Last updated: ${d.toLocaleString('en-GB')}`;
       }
 
       if (data.errors?.length) {
@@ -406,8 +406,8 @@
     const total = allJobs.length;
     resultsEl.textContent =
       filtered.length === total
-        ? `${total} lediga tjänster`
-        : `${filtered.length} av ${total} tjänster`;
+        ? `${total} open positions`
+        : `${filtered.length} of ${total} positions`;
 
     const grouped = groupJobs(filtered);
 
