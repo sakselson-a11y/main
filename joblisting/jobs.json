@@ -1,24 +1,24 @@
 {
-  "updated_at": "2026-04-22T09:26:18.838500+00:00",
-  "total": 25,
+  "updated_at": "2026-05-28T12:00:09.681516+00:00",
+  "total": 27,
   "jobs": [
     {
-      "id": "tt-7555646",
-      "title": "Brandman",
-      "department": "Manufacturing (Production)",
-      "location": "Göteborg, Sweden",
-      "url": "https://preemab.teamtailor.com/sv/jobs/7555646-brandman",
+      "id": "tt-7807582",
+      "title": "Electrical Engineer",
+      "department": "Manufacturing  (Maintenance)",
+      "location": "Lysekil, Sweden",
+      "url": "https://preemab.teamtailor.com/jobs/7807582-electrical-engineer",
       "source": "Teamtailor",
-      "published_at": "2026-04-13T14:02:09.861+02:00"
+      "published_at": "2026-05-27T17:01:54.234+02:00"
     },
     {
-      "id": "tt-7501286",
-      "title": "Praktik: Produktionstekniker till VAROPreem hösten 2026",
-      "department": "Manufacturing (Production)",
+      "id": "tt-7657107",
+      "title": "Instrumenttekniker",
+      "department": "Manufacturing  (Maintenance)",
       "location": "Göteborg, Sweden",
-      "url": "https://preemab.teamtailor.com/sv/jobs/7501286-praktik-produktionstekniker-till-varopreem-hosten-2026",
+      "url": "https://preemab.teamtailor.com/jobs/7657107-instrumenttekniker",
       "source": "Teamtailor",
-      "published_at": "2026-04-01T12:30:10.430+02:00"
+      "published_at": "2026-04-29T13:05:29.044+02:00"
     },
     {
       "id": "hr-job_8laRxRyzX673z3RMZg74",
@@ -39,15 +39,6 @@
       "published_at": "2023-05-12T09:37:11.000000Z"
     },
     {
-      "id": "hr-job_gLuXC6AjdzZ5p2E6Tv0u",
-      "title": "Commercial Analyst (m/w/d)",
-      "department": "",
-      "location": "Hamburg, DE",
-      "url": "https://varo.homerun.co/commercial-analyst-4",
-      "source": "Homerun",
-      "published_at": "2024-11-18T11:44:02.000000Z"
-    },
-    {
       "id": "hr-job_WYP3BADhnZx6OR4cNyuh",
       "title": "Inland Supply Trader (m/w/d)",
       "department": "",
@@ -57,17 +48,17 @@
       "published_at": "2025-01-28T12:09:38.000000Z"
     },
     {
-      "id": "hr-job_XDkDZODyYV1s5NiA1Ga4",
-      "title": "HR Administrator / Personalsachbearbeiter (m/w/d)",
+      "id": "hr-job_eg6cS59EBRUkQemA1HPe",
+      "title": "Laboratory Assistant",
       "department": "",
-      "location": "Hamburg, DE",
-      "url": "https://varo.homerun.co/hr-administrator-personalsachbearbeiter",
+      "location": "",
+      "url": "https://varo.homerun.co/laboratory-assistant",
       "source": "Homerun",
-      "published_at": "2025-07-31T11:39:42.000000Z"
+      "published_at": "2025-02-19T10:00:36.000000Z"
     },
     {
       "id": "hr-job_8fzPBV9vOE55oNvandqK",
-      "title": "Rail Optimization Specialist (m/w/d)",
+      "title": "Supply Chain Spezialist (m/w/d) – Schwerpunkt Logistik & Terminals / Rail Optimization Specialist (m/w/d)",
       "department": "",
       "location": "Hamburg, DE",
       "url": "https://varo.homerun.co/rail-optimization-specialist-m-w-d",
@@ -75,17 +66,8 @@
       "published_at": "2025-09-18T16:18:55.000000Z"
     },
     {
-      "id": "hr-job_WqhOY6kSHfNsZy44atuT",
-      "title": "(Senior) HR Business Partner (m/w/d)",
-      "department": "",
-      "location": "Hamburg, DE",
-      "url": "https://varo.homerun.co/senior-hr-business-partner-m-w-d",
-      "source": "Homerun",
-      "published_at": "2026-01-08T16:55:13.000000Z"
-    },
-    {
       "id": "hr-job_miUpumoeBfoyGA8d67nN",
-      "title": "Operativer Mitarbeiter Tanklager (m/w/d) Dortmund",
+      "title": "Operativer Mitarbeiter Tanklager (m/w/d) Lünen",
       "department": "",
       "location": "Dortmund, DE",
       "url": "https://varo.homerun.co/operativer-mitarbeiter-tanklager-m-w-d-dortmund",
@@ -120,24 +102,6 @@
       "published_at": "2026-03-05T12:15:43.000000Z"
     },
     {
-      "id": "hr-job_byQTdClBwMeAlbL1YuGm",
-      "title": "Customer Success Manager / Customer Experience Manager - (m/w/d)",
-      "department": "",
-      "location": "Aachen, DE",
-      "url": "https://varo.homerun.co/customer-success-manager-customer-experience-manager-m-w-d",
-      "source": "Homerun",
-      "published_at": "2026-03-17T09:14:42.000000Z"
-    },
-    {
-      "id": "hr-job_vFWEQCbPZfndQ3ziH9Oi",
-      "title": "Jr. Supply Planner",
-      "department": "",
-      "location": "Rotterdam, NL",
-      "url": "https://varo.homerun.co/jr-supply-planner-2",
-      "source": "Homerun",
-      "published_at": "2026-03-17T09:21:40.000000Z"
-    },
-    {
       "id": "hr-job_aLRiV3CH5oDgD0pxBLU6",
       "title": "Project Management Officer (m/w/d)",
       "department": "",
@@ -145,60 +109,6 @@
       "url": "https://varo.homerun.co/project-management-officer-m-w-d",
       "source": "Homerun",
       "published_at": "2026-03-19T09:13:18.000000Z"
-    },
-    {
-      "id": "hr-job_zFPsy3Djc7FHf30byYl4",
-      "title": "Financial Administrator",
-      "department": "",
-      "location": "Rotterdam, NL",
-      "url": "https://varo.homerun.co/financial-administrator",
-      "source": "Homerun",
-      "published_at": "2026-03-24T09:28:35.000000Z"
-    },
-    {
-      "id": "hr-job_HUpxX6k3w7rw7qhfkrEm",
-      "title": "Commercial Strategy Analyst - Energy Transition",
-      "department": "",
-      "location": "Rotterdam, NL",
-      "url": "https://varo.homerun.co/commercial-strategy-analyst-energy-transition",
-      "source": "Homerun",
-      "published_at": "2026-03-25T08:39:36.000000Z"
-    },
-    {
-      "id": "hr-job_FJL2iMPQoSiK0WhicED0",
-      "title": "Accountant / Finanzbuchhalter (m/w/d)",
-      "department": "",
-      "location": "Aachen, DE",
-      "url": "https://varo.homerun.co/accountant-finanzbuchhalter-m-w-d",
-      "source": "Homerun",
-      "published_at": "2026-03-25T13:46:22.000000Z"
-    },
-    {
-      "id": "hr-job_NiVcpbMQ7lDsgD7Dxo9V",
-      "title": "Supply Planner (m/w/d)",
-      "department": "",
-      "location": "Hamburg, DE",
-      "url": "https://varo.homerun.co/supply-planner-m-w-d",
-      "source": "Homerun",
-      "published_at": "2026-04-07T08:53:19.000000Z"
-    },
-    {
-      "id": "hr-job_CUNO2rtThL5nI881sVb8",
-      "title": "Elektroplaner mit Bauleitungsfunktion (m/w/d)",
-      "department": "",
-      "location": "Aachen, DE",
-      "url": "https://varo.homerun.co/elektroplaner-mit-bauleitungsfunktion-m-w-d",
-      "source": "Homerun",
-      "published_at": "2026-04-08T15:46:34.000000Z"
-    },
-    {
-      "id": "hr-job_XjTfqaOaCoS257iH2DV7",
-      "title": "Betriebsmitarbeiter",
-      "department": "",
-      "location": "",
-      "url": "https://varo.homerun.co/betriebsmitarbeiter-2",
-      "source": "Homerun",
-      "published_at": "2026-04-09T05:26:47.000000Z"
     },
     {
       "id": "hr-job_x0mJnLpnZ6WahoLLhioT",
@@ -210,15 +120,6 @@
       "published_at": "2026-04-09T14:33:28.000000Z"
     },
     {
-      "id": "hr-job_ByX4bHevrq7Cu4YOxiVt",
-      "title": "Purchasing Specialist",
-      "department": "",
-      "location": "",
-      "url": "https://varo.homerun.co/purchasing-specialist",
-      "source": "Homerun",
-      "published_at": "2026-04-10T05:45:57.000000Z"
-    },
-    {
       "id": "hr-job_39jIrXr400AwtgdhEmwF",
       "title": "Servicetechniker / Elektriker im Außendienst (m/w/d)",
       "department": "",
@@ -226,6 +127,123 @@
       "url": "https://varo.homerun.co/servicetechniker-elektriker-im-aussendienst-m-w-d",
       "source": "Homerun",
       "published_at": "2026-04-20T11:28:56.000000Z"
+    },
+    {
+      "id": "hr-job_YNifzt56149KFnoIyUoW",
+      "title": "Senior Risk Analyst",
+      "department": "",
+      "location": "Rotterdam, NL",
+      "url": "https://varo.homerun.co/senior-risk-analyst-2",
+      "source": "Homerun",
+      "published_at": "2026-04-22T10:11:29.000000Z"
+    },
+    {
+      "id": "hr-job_MmAKlCHqSV4SMY1Htghr",
+      "title": "Werkstudent Software- und Produktentwicklung (m/w/d)",
+      "department": "",
+      "location": "Aachen, DE",
+      "url": "https://varo.homerun.co/werkstudent-software-und-produktentwicklung-m-w-d",
+      "source": "Homerun",
+      "published_at": "2026-04-23T08:48:20.000000Z"
+    },
+    {
+      "id": "hr-job_CnsWwQqsujcOnl9kNHC3",
+      "title": "Financieel Administratief Medewerker - Backoffice Cruise",
+      "department": "",
+      "location": "Rotterdam, NL",
+      "url": "https://varo.homerun.co/financieel-administratief-medewerker-backoffice-cruise",
+      "source": "Homerun",
+      "published_at": "2026-04-28T13:09:30.000000Z"
+    },
+    {
+      "id": "hr-job_uTYj4Z4J4zKNbgXmXHuz",
+      "title": "Master Data Analyst (m/w/d)",
+      "department": "",
+      "location": "Hamburg, DE",
+      "url": "https://varo.homerun.co/master-data-analyst-m-w-d",
+      "source": "Homerun",
+      "published_at": "2026-04-29T09:12:02.000000Z"
+    },
+    {
+      "id": "hr-job_VOyzDxDJIOmnO68bC8df",
+      "title": "Teamlead Goods Movement (m/w/d)",
+      "department": "",
+      "location": "Hamburg, DE",
+      "url": "https://varo.homerun.co/teamlead-goods-movement-m-w-d",
+      "source": "Homerun",
+      "published_at": "2026-04-30T17:48:55.000000Z"
+    },
+    {
+      "id": "hr-job_Iea8uRrQ06YfCKAm2sYg",
+      "title": "Financial Operator (m/w/d)",
+      "department": "",
+      "location": "Hamburg, DE",
+      "url": "https://varo.homerun.co/financial-operator-m-w-d-2",
+      "source": "Homerun",
+      "published_at": "2026-05-13T15:21:47.000000Z"
+    },
+    {
+      "id": "hr-job_fgDnxXeKPA6zLGFsvdfO",
+      "title": "Risk Analyst",
+      "department": "",
+      "location": "Rotterdam, NL",
+      "url": "https://varo.homerun.co/risk-analyst",
+      "source": "Homerun",
+      "published_at": "2026-05-19T12:46:08.000000Z"
+    },
+    {
+      "id": "hr-job_iklpoWdhf6x56Y4BJH4s",
+      "title": "Portfolio Risk Analytics Specialist",
+      "department": "",
+      "location": "Rotterdam, NL",
+      "url": "https://varo.homerun.co/portfolio-risk-analytics-specialist",
+      "source": "Homerun",
+      "published_at": "2026-05-19T12:46:33.000000Z"
+    },
+    {
+      "id": "hr-job_cA7Wi4nvgBnx46hZOdRU",
+      "title": "Assistenz der Geschäftsleitung / Executive Assistant (m/w/d)",
+      "department": "",
+      "location": "Aachen, DE",
+      "url": "https://varo.homerun.co/assistenz-der-geschaeftsleitung-executive-assistant-m-w-d",
+      "source": "Homerun",
+      "published_at": "2026-05-21T09:35:37.000000Z"
+    },
+    {
+      "id": "hr-job_WHLgzVmQzlkop36QGjD7",
+      "title": "Werkstudent HR / Fokus Digitale Personalakte & Personio (m/w/d)",
+      "department": "",
+      "location": "Aachen, DE",
+      "url": "https://varo.homerun.co/werkstudent-hr-fokus-digitale-personalakte-personio-m-w-d",
+      "source": "Homerun",
+      "published_at": "2026-05-21T09:44:50.000000Z"
+    },
+    {
+      "id": "hr-job_iEuhm5xConpFsMGBb3iA",
+      "title": "Werkstudent Technischer Customer Service (m/w/d)",
+      "department": "",
+      "location": "Aachen, DE",
+      "url": "https://varo.homerun.co/werkstudent-technischer-customer-service-m-w-d",
+      "source": "Homerun",
+      "published_at": "2026-05-21T09:54:24.000000Z"
+    },
+    {
+      "id": "hr-job_XdiHc4paP43rHvNPk1Pg",
+      "title": "Cash Management Analyst",
+      "department": "",
+      "location": "Baar, CH",
+      "url": "https://varo.homerun.co/cash-management-analyst-group-treasury",
+      "source": "Homerun",
+      "published_at": "2026-05-22T12:42:35.000000Z"
+    },
+    {
+      "id": "hr-job_BArQDdTkmG9qsiaVGqWv",
+      "title": "Group Consolidation & Technical Accounting Analyst",
+      "department": "",
+      "location": "Baar, CH",
+      "url": "https://varo.homerun.co/group-consolidation-technical-accounting-analyst",
+      "source": "Homerun",
+      "published_at": "2026-05-22T13:03:30.000000Z"
     }
   ],
   "errors": null
