@@ -1,9 +1,9 @@
 {
-  "updated_at": "2026-06-07T12:16:13.370026+00:00",
+  "updated_at": "2026-06-07T14:48:04.583868+00:00",
   "total": 0,
   "jobs": [],
   "errors": [
-    "Teamtailor fetch failed: 400 Client Error: Bad Request for url: https://api.teamtailor.com/v1/jobs?filter%5Bstatus%5D=open&include=department%2Clocations&page%5Bsize%5D=100",
-    "Homerun fetch failed: No working Homerun endpoint found"
+    "Teamtailor fetch failed: HTTPSConnectionPool(host='api.teamtailor.com', port=443): Max retries exceeded with url: /v1/jobs?filter%5Bstatus%5D=open&include=department%2Clocations&page%5Bsize%5D=100 (Caused by ConnectTimeoutError(<HTTPSConnection(host='api.teamtailor.com', port=443) at 0x7f0843f4f7d0>, 'Connection to api.teamtailor.com timed out. (connect timeout=15)'))",
+    "Homerun fetch failed: HTTPSConnectionPool(host='api.homerun.co', port=443): Max retries exceeded with url: /v2/jobs (Caused by ConnectTimeoutError(<HTTPSConnection(host='api.homerun.co', port=443) at 0x7f0843a4b500>, 'Connection to api.homerun.co timed out. (connect timeout=15)'))"
   ]
 }
